@@ -104,6 +104,11 @@ public class Buffer : StackItem
         return InnerBuffer.Span;
     }
 
+    protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
+    {
+        return InnerBuffer.Span;
+    }
+
     public override string ToString()
     {
         return GetSpan().TryToStrictUtf8String(out var str)

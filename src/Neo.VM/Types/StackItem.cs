@@ -194,6 +194,40 @@ public abstract partial class StackItem : IEquatable<StackItem>
     }
 
     /// <summary>
+    /// Cycle-safe byte representation (Rapid-Loop neo-platform
+    /// <c>AsSpan</c> / <c>GetSafeSpan</c>). Opcode <see cref="GetSpan"/> is unchanged.
+    /// </summary>
+    public ReadOnlySpan<byte> GetSafeSpan()
+    {
+        var visited = new HashSet<StackItem>(ReferenceEqualityComparer.Instance);
+        return GetSafeSpan(visited);
+    }
+
+    /// <summary>
+    /// If <paramref name="visited"/> already contains this item, returns empty
+    /// (circular reference). Otherwise computes <see cref="ComputeSpan"/>.
+    /// </summary>
+    protected internal ReadOnlySpan<byte> GetSafeSpan(HashSet<StackItem> visited)
+    {
+        if (!visited.Add(this))
+            return [];
+        try
+        {
+            return ComputeSpan(visited);
+        }
+        finally
+        {
+            visited.Remove(this);
+        }
+    }
+
+    /// <summary>
+    /// Type-specific bytes. Compounds recurse through
+    /// <see cref="GetSafeSpan(HashSet{StackItem})"/>.
+    /// </summary>
+    protected virtual ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited) => [];
+
+    /// <summary>
     /// Get the <see cref="string"/> value represented by the VM object.
     /// </summary>
     /// <returns>The <see cref="string"/> value represented by the VM object.</returns>

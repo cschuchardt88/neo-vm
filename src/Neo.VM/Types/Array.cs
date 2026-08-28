@@ -124,4 +124,16 @@ public class Array : CompoundType, IReadOnlyList<StackItem>
         if (IsReadOnly) throw new InvalidOperationException("The array is readonly, can not reverse.");
         InnerList.Reverse();
     }
+
+    protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
+    {
+        var result = new List<byte>();
+        foreach (var item in InnerList)
+        {
+            if (item is Null)
+                continue;
+            result.AddRange(item.GetSafeSpan(visited));
+        }
+        return result.ToArray();
+    }
 }

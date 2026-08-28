@@ -52,6 +52,11 @@ public abstract class PrimitiveType : StackItem
         return Memory.Span;
     }
 
+    protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
+    {
+        return Memory.Span;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator PrimitiveType(sbyte value)
     {
