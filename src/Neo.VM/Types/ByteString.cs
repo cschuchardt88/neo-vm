@@ -35,7 +35,7 @@ public class ByteString : PrimitiveType
 
     /// <summary>
     /// Create a new <see cref="ByteString"/> with the specified data.
-    /// Copies into pooled <see cref="IMemoryOwner{T}"/> memory (Rapid-Loop VMByteArray).
+    /// Copies into pooled <see cref="IMemoryOwner{T}"/> memory.
     /// </summary>
     /// <param name="data">The data to be contained in this <see cref="ByteString"/>.</param>
     public ByteString(ReadOnlyMemory<byte> data)

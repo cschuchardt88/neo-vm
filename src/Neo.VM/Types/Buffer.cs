@@ -39,7 +39,7 @@ public class Buffer : StackItem
 
     /// <summary>
     /// Create a buffer of the specified size, backed by
-    /// <see cref="MemoryPool{T}.Shared"/> (Rapid-Loop VMBuffer).
+    /// <see cref="MemoryPool{T}.Shared"/>.
     /// </summary>
     /// <param name="size">The size of this buffer.</param>
     /// <param name="zeroInitialize">Indicates whether the created buffer is zero-initialized.</param>
