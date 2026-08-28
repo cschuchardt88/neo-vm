@@ -9,6 +9,7 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
+using Neo.VM.Extensions;
 using System;
 using System.Diagnostics;
 using System.Numerics;
@@ -49,6 +50,13 @@ public class ByteString : PrimitiveType
         if (ReferenceEquals(this, other)) return true;
         if (other is not ByteString b) return false;
         return Equals(b);
+    }
+
+    public override int GetHashCode(ExecutionEngineLimits limits)
+    {
+        if (limits.Has(VmFeatures.ContentHashCode))
+            return GetSpan(limits).ToHashCode(397);
+        return base.GetHashCode(limits);
     }
 
     internal override bool Equals(StackItem? other, ExecutionEngineLimits limits)

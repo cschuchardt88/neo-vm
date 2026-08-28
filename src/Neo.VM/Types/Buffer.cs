@@ -116,18 +116,16 @@ public class Buffer : StackItem
             : $"(\"Base64: {Convert.ToBase64String(GetSpan())}\")";
     }
 
-    public override int GetHashCode()
-        => GetHashCode(ExecutionEngineLimits.Default);
-
     /// <summary>
     /// Without <see cref="VmFeatures.ContentHashCode"/> this throws (master).
-    /// With the feature, Rapid-Loop <c>ToHashCode(397)</c> over the buffer bytes.
+    /// With the feature, Rapid-Loop <c>ToHashCode(397)</c> over
+    /// <see cref="StackItem.GetSpan(ExecutionEngineLimits)"/>.
     /// </summary>
     public override int GetHashCode(ExecutionEngineLimits limits)
     {
         if (!limits.Has(VmFeatures.ContentHashCode))
             throw new NotSupportedException("Mutable buffer does not support GetHashCode.");
-        return GetSpan().ToHashCode(397);
+        return GetSpan(limits).ToHashCode(397);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

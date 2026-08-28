@@ -45,9 +45,6 @@ public class InteropInterface : StackItem
         return true;
     }
 
-    public override int GetHashCode()
-        => HashCode.Combine(_object);
-
     public override int GetHashCode(ExecutionEngineLimits limits)
         => HashCode.Combine(_object);
 

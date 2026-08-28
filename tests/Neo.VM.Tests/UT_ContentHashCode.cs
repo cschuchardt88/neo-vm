@@ -45,7 +45,8 @@ public class UT_ContentHashCode
         StackItem itemB = "NEO";
         StackItem itemC = "SmartEconomy";
 
-        Assert.AreEqual(itemA.AsSpan().ToHashCode(397), itemA.GetHashCode(ContentHash));
+        Assert.AreEqual(itemA.GetSpan(ContentHash).ToHashCode(397), itemA.GetHashCode(ContentHash));
+        Assert.AreEqual(itemA.GetHashCode(ExecutionEngineLimits.Default), itemA.GetHashCode());
         Assert.AreEqual(itemB.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
         Assert.AreNotEqual(itemC.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
         Assert.AreNotEqual(0, itemA.GetHashCode(ContentHash));
@@ -62,7 +63,8 @@ public class UT_ContentHashCode
 
         Assert.AreEqual(itemB.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
         Assert.AreNotEqual(itemC.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
-        Assert.AreEqual(itemA.GetSpan().ToHashCode(397), itemA.GetHashCode(ContentHash));
+        Assert.AreEqual(itemA.GetSpan(ContentHash).ToHashCode(397), itemA.GetHashCode(ContentHash));
+        Assert.ThrowsExactly<NotSupportedException>(() => itemA.GetHashCode());
     }
 
     [TestMethod]

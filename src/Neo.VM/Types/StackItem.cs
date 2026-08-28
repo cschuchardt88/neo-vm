@@ -161,16 +161,18 @@ public abstract partial class StackItem : IEquatable<StackItem>
         => GetHashCode(ExecutionEngineLimits.Default);
 
     /// <summary>
-    /// Hash using <paramref name="limits"/>. With
-    /// <see cref="VmFeatures.ContentHashCode"/> this is Rapid-Loop
-    /// <c>AsSpan().ToHashCode(397)</c>; otherwise master XxHash3+Type.
+    /// Hash using <paramref name="limits"/>, same pattern as
+    /// <see cref="ConvertTo(StackItemType, ExecutionEngineLimits)"/> and
+    /// <see cref="GetSpan(ExecutionEngineLimits)"/>.
+    /// With <see cref="VmFeatures.ContentHashCode"/> this is Rapid-Loop
+    /// <c>GetSpan(limits).ToHashCode(397)</c>; otherwise master XxHash3+Type.
     /// </summary>
     public virtual int GetHashCode(ExecutionEngineLimits limits)
     {
         if (limits.Has(VmFeatures.ContentHashCode))
-            return AsSpan().ToHashCode(397);
+            return GetSpan(limits).ToHashCode(397);
         if (_hashCode == 0)
-            _hashCode = HashCode.Combine(Type, GetSpan().XxHash3_32());
+            _hashCode = HashCode.Combine(Type, GetSpan(limits).XxHash3_32());
         return _hashCode;
     }
 

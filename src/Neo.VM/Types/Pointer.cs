@@ -56,9 +56,6 @@ public class Pointer : StackItem
         return true;
     }
 
-    public override int GetHashCode()
-        => GetHashCode(ExecutionEngineLimits.Default);
-
     public override int GetHashCode(ExecutionEngineLimits limits)
     {
         if (limits.Has(VmFeatures.ContentHashCode))
