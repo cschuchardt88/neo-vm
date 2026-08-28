@@ -106,6 +106,7 @@ partial class JumpTable
         if (index < 0)
             throw new InvalidOperationException($"The index can not be negative for {nameof(OpCode.SUBSTR)}, index: {index}.");
         var x = engine.Pop().GetSpan();
+        // Pre-Echidna (SafeSubStr off): unchecked add can wrap past Length.
         var end = engine.Limits.Has(VmFeatures.SafeSubStr) ? checked(index + count) : index + count;
         if (end > x.Length)
             throw new InvalidOperationException($"The index + count is out of range for {nameof(OpCode.SUBSTR)}, index: {index}, count: {count}, {end}/[0, {x.Length}].");

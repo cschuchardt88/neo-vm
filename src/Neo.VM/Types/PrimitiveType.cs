@@ -28,7 +28,7 @@ public abstract class PrimitiveType : StackItem
     /// </summary>
     public virtual int Size => Memory.Length;
 
-    public override StackItem ConvertTo(StackItemType type)
+    public override StackItem ConvertTo(StackItemType type, ExecutionEngineLimits limits)
     {
         if (type == Type) return this;
         return type switch
@@ -36,7 +36,7 @@ public abstract class PrimitiveType : StackItem
             StackItemType.Integer => GetInteger(),
             StackItemType.ByteString => Memory,
             StackItemType.Buffer => new Buffer(GetSpan()),
-            _ => base.ConvertTo(type)
+            _ => base.ConvertTo(type, limits)
         };
     }
 

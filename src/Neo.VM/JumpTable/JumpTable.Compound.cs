@@ -374,6 +374,7 @@ partial class JumpTable
         var index = key.GetInteger();
         if (index.Sign < 0)
             throw new InvalidOperationException($"The negative index {index} is invalid for OpCode {instruction.OpCode}.");
+        // Pre-Gorgon (StrictContainerAccess off): oversized indexes return false, not a fault.
         if (engine.Limits.Has(VmFeatures.StrictContainerAccess) && index >= engine.Limits.MaxItemSize)
             throw new InvalidOperationException($"The index {index} is invalid for OpCode {instruction.OpCode}.");
         return index < count;

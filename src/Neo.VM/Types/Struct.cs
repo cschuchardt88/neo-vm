@@ -68,11 +68,11 @@ public class Struct : Array
         return result;
     }
 
-    public override StackItem ConvertTo(StackItemType type)
+    public override StackItem ConvertTo(StackItemType type, ExecutionEngineLimits limits)
     {
         if (type == StackItemType.Array)
             return new Array(new List<StackItem>(InnerList));
-        return base.ConvertTo(type);
+        return base.ConvertTo(type, limits);
     }
 
     public override bool Equals(StackItem? other)

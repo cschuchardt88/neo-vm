@@ -26,18 +26,35 @@ public enum VmFeatures : ulong
     /// <see cref="OpCode.SUBSTR"/> uses a checked <c>index + count</c>
     /// so the range check cannot wrap.
     /// </summary>
+    /// <remarks>
+    /// Mapped from HF_Echidna in neo.dll <c>ApplicationEngine.LimitsFor</c>.
+    /// Off: unchecked add (pre-Echidna). On: <c>checked</c> add (current).
+    /// </remarks>
     SafeSubStr = 1 << 0,
 
     /// <summary>
     /// <see cref="OpCode.HASKEY"/> rejects indexes at or above
     /// <see cref="ExecutionEngineLimits.MaxItemSize"/>.
     /// </summary>
+    /// <remarks>
+    /// Mapped from HF_Gorgon in neo.dll <c>ApplicationEngine.LimitsFor</c>.
+    /// Off: only negative indexes fault; a too-large index returns false.
+    /// On: index ≥ MaxItemSize faults (current).
+    /// </remarks>
     StrictContainerAccess = 1 << 1,
 
     /// <summary>
     /// <see cref="OpCode.SHL"/> and <see cref="OpCode.SHR"/> always pop the
     /// value operand, including when the shift is zero.
     /// </summary>
+    /// <remarks>
+    /// Mapped from HF_Gorgon in neo.dll <c>ApplicationEngine.LimitsFor</c>
+    /// (replaces the old VulnerableSHL/VulnerableSHR jump-table overlays).
+    /// Off: shift 0 returns after popping the shift, leaving the value on the
+    /// stack. On: always pop the value and push the shifted result (current).
+    /// For integer x, x≪0 equals x, so the numeric result matches; the extra
+    /// pop still type-checks the value (e.g. Buffer faults when on).
+    /// </remarks>
     BoundedShift = 1 << 2,
 }
 

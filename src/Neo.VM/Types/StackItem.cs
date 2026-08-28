@@ -83,11 +83,23 @@ public abstract partial class StackItem : IEquatable<StackItem>
     public abstract StackItemType Type { get; }
 
     /// <summary>
-    /// Convert the VM object to the specified type.
+    /// Convert the VM object to the specified type using default engine limits
+    /// (<see cref="VmFeatureSets.Current"/>).
     /// </summary>
     /// <param name="type">The type to be converted to.</param>
     /// <returns>The converted object.</returns>
-    public virtual StackItem ConvertTo(StackItemType type)
+    public StackItem ConvertTo(StackItemType type)
+        => ConvertTo(type, ExecutionEngineLimits.Default);
+
+    /// <summary>
+    /// Convert the VM object to the specified type.
+    /// Opcode handlers pass <see cref="ExecutionEngine.Limits"/> so conversions
+    /// can honor <see cref="VmFeatures"/> without storing flags on the item.
+    /// </summary>
+    /// <param name="type">The type to be converted to.</param>
+    /// <param name="limits">Engine limits and feature flags for this execution.</param>
+    /// <returns>The converted object.</returns>
+    public virtual StackItem ConvertTo(StackItemType type, ExecutionEngineLimits limits)
     {
         if (type == Type) return this;
         if (type == StackItemType.Boolean) return GetBoolean();
