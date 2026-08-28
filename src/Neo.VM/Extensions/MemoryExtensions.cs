@@ -14,7 +14,7 @@ using System;
 namespace Neo.VM.Extensions;
 
 /// <summary>
-/// Hash helpers for <see cref="Memory{T}"/> (Rapid-Loop neo-platform).
+/// Hash helpers for <see cref="Memory{T}"/>.
 /// </summary>
 public static class MemoryExtensions
 {

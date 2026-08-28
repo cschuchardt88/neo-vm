@@ -114,9 +114,9 @@ public class Buffer : StackItem
     }
 
     /// <summary>
-    /// Without <see cref="VmFeatures.ContentHashCode"/> this throws (master).
-    /// With the feature, Rapid-Loop <c>ToHashCode(397)</c> over
-    /// <see cref="StackItem.GetSpan(ExecutionEngineLimits)"/>.
+    /// Without <see cref="VmFeatures.ContentHashCode"/> this throws.
+    /// With the feature, hashes <see cref="StackItem.GetSpan(ExecutionEngineLimits)"/>
+    /// with seed 397.
     /// </summary>
     public override int GetHashCode(ExecutionEngineLimits limits)
     {

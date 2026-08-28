@@ -14,7 +14,7 @@ using System.Collections.Generic;
 namespace Neo.VM.Extensions;
 
 /// <summary>
-/// Hash helpers for sequences (Rapid-Loop neo-platform).
+/// Hash helpers for sequences.
 /// </summary>
 public static class EnumerableExtensions
 {

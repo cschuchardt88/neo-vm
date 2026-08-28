@@ -19,7 +19,7 @@ using Array = Neo.VM.Types.Array;
 namespace Neo.VM.Extensions;
 
 /// <summary>
-/// Converts CLR values to <see cref="StackItem"/> (Rapid-Loop neo-platform).
+/// Converts CLR values to <see cref="StackItem"/>.
 /// </summary>
 public static class ObjectExtensions
 {

@@ -66,10 +66,9 @@ public abstract class CompoundType : StackItem
     }
 
     /// <summary>
-    /// Without <see cref="VmFeatures.ContentHashCode"/> this throws (master).
-    /// With the feature, Rapid-Loop <c>ToHashCode</c> over
-    /// <see cref="StackItem.GetSafeSpan()"/> (opcode GetSpan still throws
-    /// unless <see cref="VmFeatures.CompoundSpan"/> is on).
+    /// Without <see cref="VmFeatures.ContentHashCode"/> this throws.
+    /// With the feature, hashes <see cref="StackItem.GetSafeSpan()"/>
+    /// (opcode GetSpan still throws unless <see cref="VmFeatures.CompoundSpan"/> is on).
     /// Array seed <c>StackReferences ^ 397</c>, Map seed <c>StackReferences * 397</c>.
     /// </summary>
     public override int GetHashCode(ExecutionEngineLimits limits)

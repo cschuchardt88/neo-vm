@@ -14,7 +14,7 @@ using System.Collections.Generic;
 namespace Neo.VM.Extensions;
 
 /// <summary>
-/// Hash helpers for lists (Rapid-Loop neo-platform).
+/// Hash helpers for lists.
 /// </summary>
 public static class ListExtensions
 {

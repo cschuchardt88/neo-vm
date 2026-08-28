@@ -14,7 +14,7 @@ using System.Collections.Generic;
 namespace Neo.VM.Extensions;
 
 /// <summary>
-/// Hash helpers for dictionaries (Rapid-Loop neo-platform).
+/// Hash helpers for dictionaries.
 /// </summary>
 public static class DictionaryExtensions
 {

@@ -20,7 +20,6 @@ namespace Neo.VM.Types;
 
 /// <summary>
 /// The base class for all types in the VM.
-/// Same role as Rapid-Loop neo-platform <c>VMObject</c>.
 /// </summary>
 public abstract partial class StackItem : IEquatable<StackItem>
 {
@@ -85,7 +84,7 @@ public abstract partial class StackItem : IEquatable<StackItem>
     public abstract StackItemType Type { get; }
 
     /// <summary>
-    /// Byte length of parameterless GetSpan. Same as Rapid-Loop <c>VMObject.Size</c>.
+    /// Byte length of parameterless GetSpan.
     /// </summary>
     public virtual int Size => GetSpan().Length;
 
@@ -164,8 +163,8 @@ public abstract partial class StackItem : IEquatable<StackItem>
     /// Hash using <paramref name="limits"/>, same pattern as
     /// <see cref="ConvertTo(StackItemType, ExecutionEngineLimits)"/> and
     /// <see cref="GetSpan(ExecutionEngineLimits)"/>.
-    /// With <see cref="VmFeatures.ContentHashCode"/> this is Rapid-Loop
-    /// <c>GetSpan(limits).ToHashCode(397)</c>; otherwise master XxHash3+Type.
+    /// With <see cref="VmFeatures.ContentHashCode"/> this is
+    /// <c>GetSpan(limits).ToHashCode(397)</c>; otherwise Type plus XxHash3 of the span.
     /// </summary>
     public virtual int GetHashCode(ExecutionEngineLimits limits)
     {

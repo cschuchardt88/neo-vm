@@ -73,13 +73,12 @@ public enum VmFeatures : ulong
     CompoundSpan = 1 << 3,
 
     /// <summary>
-    /// Host <see cref="object.GetHashCode"/> uses Rapid-Loop content hashing
+    /// Host <see cref="object.GetHashCode"/> uses content hashing
     /// (<c>ToHashCode</c> over <see cref="Types.StackItem.GetSpan(ExecutionEngineLimits)"/>).
     /// </summary>
     /// <remarks>
     /// Not a protocol hardfork. Off: ByteString uses XxHash3+Type; Array/Map/Struct
-    /// and Buffer throw. On: same algorithm as neo-platform VMObject
-    /// (<c>(hash * 31) ^ byte</c>, seed 397). Call
+    /// and Buffer throw. On: <c>(hash * 31) ^ byte</c> with seed 397. Call
     /// <see cref="Types.StackItem.GetHashCode(ExecutionEngineLimits)"/> with this
     /// flag; default <see cref="object.GetHashCode"/> stays master behavior.
     /// </remarks>

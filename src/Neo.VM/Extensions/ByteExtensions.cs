@@ -14,7 +14,7 @@ using System;
 namespace Neo.VM.Extensions;
 
 /// <summary>
-/// Hash helpers for <see cref="byte"/> arrays (Rapid-Loop neo-platform).
+/// Hash helpers for <see cref="byte"/> arrays.
 /// </summary>
 public static class ByteExtensions
 {
