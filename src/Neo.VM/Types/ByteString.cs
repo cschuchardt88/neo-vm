@@ -92,9 +92,6 @@ public class ByteString : PrimitiveType
         return new BigInteger(GetSpan());
     }
 
-    /// <summary>
-    /// Rapid-Loop <c>VMByteArray.ComputeSpan</c>: the immutable payload.
-    /// </summary>
     protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
         => Memory.Span;
 
