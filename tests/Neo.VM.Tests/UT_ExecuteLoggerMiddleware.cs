@@ -120,16 +120,68 @@ public class UT_ExecuteLoggerMiddleware
     public void TestLoggerExtensions()
     {
         var logger = new CollectingLogger();
-        logger.LogExecuteMessage(LogLevel.Information, "exec");
-        logger.LogFaultMessage(LogLevel.Error, new InvalidOperationException("boom"), "fault");
-        logger.LogBreakMessage(LogLevel.Debug, "break");
+        var error = new InvalidOperationException("boom");
 
-        Assert.AreEqual(VirtualMachineEventId.Execute, logger.Entries[0].EventId.Id);
-        Assert.AreEqual("exec", logger.Entries[0].Message);
+        logger.LogFaultMessage(LogLevel.Error, "fault-text");
+        logger.LogFaultMessage(LogLevel.Error, error, "fault-ex");
+        logger.LogCreateMessage(LogLevel.Information, "create");
+        logger.LogLoadMessage(LogLevel.Information, "load");
+        logger.LogPrePostMessage(LogLevel.Debug, "prepost");
+        logger.LogPostMessage(LogLevel.Debug, "post");
+        logger.LogBreakMessage(LogLevel.Debug, "break");
+        logger.LogExecuteMessage(LogLevel.Information, "exec");
+        logger.LogBurnMessage(LogLevel.Trace, "burn");
+        logger.LogCallMessage(LogLevel.Trace, "call");
+        logger.LogNotifyMessage(LogLevel.Information, "notify");
+        logger.LogLogMessage(LogLevel.Information, "log");
+        logger.LogPersistMessage(LogLevel.Information, "persist");
+        logger.LogPostPersistMessage(LogLevel.Information, "postpersist");
+        logger.LogStoragePutMessage(LogLevel.Trace, "sput");
+        logger.LogStorageGetMessage(LogLevel.Trace, "sget");
+        logger.LogStorageFindMessage(LogLevel.Trace, "sfind");
+        logger.LogStorageDeleteMessage(LogLevel.Trace, "sdel");
+        logger.LogIteratorNextMessage(LogLevel.Trace, "inext");
+        logger.LogIteratorGetMessage(LogLevel.Trace, "iget");
+        logger.LogReadStorageMessage(LogLevel.Trace, "read");
+        logger.LogUpdateStorageMessage(LogLevel.Trace, "update");
+
+        Assert.HasCount(22, logger.Entries);
+
+        AssertEntry(logger, 0, VirtualMachineEventId.Fault, "fault-text", nameof(VirtualMachineEventId.Fault));
         Assert.AreEqual(VirtualMachineEventId.Fault, logger.Entries[1].EventId.Id);
-        Assert.AreEqual("fault", logger.Entries[1].Message);
-        Assert.IsInstanceOfType<InvalidOperationException>(logger.Entries[1].Exception);
-        Assert.AreEqual(VirtualMachineEventId.Break, logger.Entries[2].EventId.Id);
-        Assert.AreEqual("break", logger.Entries[2].Message);
+        Assert.AreEqual("fault-ex", logger.Entries[1].Message);
+        Assert.AreEqual("FaultException", logger.Entries[1].EventId.Name);
+        Assert.AreSame(error, logger.Entries[1].Exception);
+
+        AssertEntry(logger, 2, VirtualMachineEventId.Create, "create");
+        AssertEntry(logger, 3, VirtualMachineEventId.Load, "load");
+        AssertEntry(logger, 4, VirtualMachineEventId.PrePost, "prepost");
+        AssertEntry(logger, 5, VirtualMachineEventId.Post, "post");
+        AssertEntry(logger, 6, VirtualMachineEventId.Break, "break");
+        AssertEntry(logger, 7, VirtualMachineEventId.Execute, "exec");
+        AssertEntry(logger, 8, VirtualMachineEventId.Burn, "burn");
+        AssertEntry(logger, 9, VirtualMachineEventId.Call, "call");
+        AssertEntry(logger, 10, VirtualMachineEventId.Notify, "notify");
+        AssertEntry(logger, 11, VirtualMachineEventId.Log, "log");
+        AssertEntry(logger, 12, VirtualMachineEventId.Persist, "persist");
+        AssertEntry(logger, 13, VirtualMachineEventId.PostPersist, "postpersist");
+        AssertEntry(logger, 14, VirtualMachineEventId.StoragePut, "sput");
+        AssertEntry(logger, 15, VirtualMachineEventId.StorageGet, "sget");
+        AssertEntry(logger, 16, VirtualMachineEventId.StorageFind, "sfind");
+        AssertEntry(logger, 17, VirtualMachineEventId.StorageDelete, "sdel");
+        AssertEntry(logger, 18, VirtualMachineEventId.IteratorNext, "inext");
+        AssertEntry(logger, 19, VirtualMachineEventId.IteratorGet, "iget");
+        AssertEntry(logger, 20, VirtualMachineEventId.ReadStorage, "read");
+        AssertEntry(logger, 21, VirtualMachineEventId.UpdateStorage, "update");
+    }
+
+    private static void AssertEntry(CollectingLogger logger, int index, int eventId, string message, string? eventName = null)
+    {
+        var entry = logger.Entries[index];
+        Assert.AreEqual(eventId, entry.EventId.Id, message);
+        Assert.AreEqual(message, entry.Message);
+        Assert.IsNull(entry.Exception);
+        if (eventName is not null)
+            Assert.AreEqual(eventName, entry.EventId.Name);
     }
 }
