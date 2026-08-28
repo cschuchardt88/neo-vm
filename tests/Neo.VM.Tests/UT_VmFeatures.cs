@@ -289,7 +289,7 @@ public class UT_VmFeatures
         sb.EmitPush(2);
         sb.Emit(OpCode.CAT);
         Assert.AreEqual(VMState.HALT, Run(engine, sb));
-        byte[] expected = [1, 2];
+        byte[] expected = [.. ((StackItem)1).GetSafeSpan(), 2];
         CollectionAssert.AreEqual(expected, engine.ResultStack.Pop().GetSpan().ToArray());
     }
 

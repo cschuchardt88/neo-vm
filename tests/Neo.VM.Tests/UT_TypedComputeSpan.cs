@@ -24,17 +24,25 @@ namespace Neo.Test;
 public class UT_TypedComputeSpan
 {
     [TestMethod]
-    public void Integer_ComputeSpan_ToByteArray()
+    public void Integer_ComputeSpan_Is32LittleEndianBytes()
     {
         StackItem zero = 0;
-        CollectionAssert.AreEqual(BigInteger.Zero.ToByteArray(), zero.GetSafeSpan().ToArray());
+        var zeroBytes = zero.GetSafeSpan().ToArray();
+        Assert.HasCount(Integer.MaxSize, zeroBytes);
+        Assert.IsLessThan(0, zero.GetSafeSpan().IndexOfAnyExcept((byte)0));
         Assert.AreEqual(0, zero.GetSpan().Length);
 
         StackItem one = 1;
-        CollectionAssert.AreEqual(BigInteger.One.ToByteArray(), one.GetSafeSpan().ToArray());
+        var oneBytes = one.GetSafeSpan().ToArray();
+        Assert.HasCount(Integer.MaxSize, oneBytes);
+        Assert.AreEqual(1, oneBytes[0]);
+        Assert.IsLessThan(0, oneBytes.AsSpan(1).IndexOfAnyExcept((byte)0));
 
         StackItem neg = -1;
-        CollectionAssert.AreEqual(new BigInteger(-1).ToByteArray(), neg.GetSafeSpan().ToArray());
+        var negBytes = neg.GetSafeSpan().ToArray();
+        Assert.HasCount(Integer.MaxSize, negBytes);
+        foreach (var b in negBytes)
+            Assert.AreEqual(0xFF, b);
     }
 
     [TestMethod]
@@ -85,8 +93,9 @@ public class UT_TypedComputeSpan
     public void Array_AndStruct_SkipNull_ConcatChildren()
     {
         var array = new Array { 1, StackItem.Null, 2 };
-        byte[] expected = [1, 2];
+        byte[] expected = [.. ((StackItem)1).GetSafeSpan(), .. ((StackItem)2).GetSafeSpan()];
         CollectionAssert.AreEqual(expected, array.GetSafeSpan().ToArray());
+        Assert.HasCount(Integer.MaxSize * 2, expected);
 
         var s = new Struct { 1, StackItem.Null, 2 };
         CollectionAssert.AreEqual(expected, s.GetSafeSpan().ToArray());
@@ -96,7 +105,13 @@ public class UT_TypedComputeSpan
     public void Map_ConcatenatesKeyThenValue()
     {
         var map = new Map { [1] = 2, [3] = 4 };
-        CollectionAssert.AreEqual(map.GetSafeSpan().ToArray(), map.GetSafeSpan().ToArray());
-        CollectionAssert.AreEqual(new byte[] { 1, 2, 3, 4 }, map.GetSafeSpan().ToArray());
+        byte[] expected =
+        [
+            .. ((StackItem)1).GetSafeSpan(),
+            .. ((StackItem)2).GetSafeSpan(),
+            .. ((StackItem)3).GetSafeSpan(),
+            .. ((StackItem)4).GetSafeSpan()
+        ];
+        CollectionAssert.AreEqual(expected, map.GetSafeSpan().ToArray());
     }
 }

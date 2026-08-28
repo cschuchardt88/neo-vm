@@ -27,7 +27,9 @@ public class UT_SafeSpan
     public void Primitive_GetSafeSpan_MatchesGetSpan()
     {
         StackItem integer = 1;
-        CollectionAssert.AreEqual(integer.GetSpan().ToArray(), integer.GetSafeSpan().ToArray());
+        Assert.AreEqual(1, integer.GetSpan().Length);
+        Assert.HasCount(Integer.MaxSize, integer.GetSafeSpan().ToArray());
+        Assert.AreEqual(1, integer.GetSafeSpan()[0]);
 
         StackItem flag = true;
         CollectionAssert.AreEqual(flag.GetSpan().ToArray(), flag.GetSafeSpan().ToArray());
@@ -44,7 +46,7 @@ public class UT_SafeSpan
     public void Array_ConcatenatesChildSpans()
     {
         var array = new Array { 1, 2 };
-        byte[] expected = [1, 2];
+        byte[] expected = [.. ((StackItem)1).GetSafeSpan(), .. ((StackItem)2).GetSafeSpan()];
         CollectionAssert.AreEqual(expected, array.GetSafeSpan().ToArray());
     }
 
@@ -52,7 +54,7 @@ public class UT_SafeSpan
     public void Array_SkipsNullItems()
     {
         var array = new Array { 1, StackItem.Null, 2 };
-        byte[] expected = [1, 2];
+        byte[] expected = [.. ((StackItem)1).GetSafeSpan(), .. ((StackItem)2).GetSafeSpan()];
         CollectionAssert.AreEqual(expected, array.GetSafeSpan().ToArray());
     }
 
@@ -61,7 +63,7 @@ public class UT_SafeSpan
     {
         Array array = [1];
         array.Add(array);
-        byte[] expected = [1];
+        byte[] expected = [.. ((StackItem)1).GetSafeSpan()];
         CollectionAssert.AreEqual(expected, array.GetSafeSpan().ToArray());
     }
 
@@ -77,7 +79,7 @@ public class UT_SafeSpan
     public void Map_ConcatenatesKeyAndValueSpans()
     {
         var map = new Map { [1] = 2 };
-        byte[] expected = [1, 2];
+        byte[] expected = [.. ((StackItem)1).GetSafeSpan(), .. ((StackItem)2).GetSafeSpan()];
         CollectionAssert.AreEqual(expected, map.GetSafeSpan().ToArray());
     }
 
@@ -91,11 +93,10 @@ public class UT_SafeSpan
     public void GetSpan_UsesGetSafeSpan_ForPrimitives()
     {
         StackItem number = 7;
-        CollectionAssert.AreEqual(number.GetSafeSpan().ToArray(), number.GetSpan().ToArray());
-        CollectionAssert.AreEqual(number.AsSpan().ToArray(), number.GetSpan().ToArray());
-        CollectionAssert.AreEqual(
-            number.GetSpan(ExecutionEngineLimits.Default).ToArray(),
-            number.GetSpan().ToArray());
+        Assert.AreEqual(Integer.MaxSize, number.GetSafeSpan().Length);
+        Assert.AreEqual(7, number.GetSafeSpan()[0]);
+        CollectionAssert.AreEqual(number.GetSpan().ToArray(), number.GetSpan(ExecutionEngineLimits.Default).ToArray());
+        Assert.AreEqual(1, number.GetSpan().Length);
 
         byte[] data = [1, 2, 3];
         var buffer = new Buffer(data);
@@ -115,7 +116,7 @@ public class UT_SafeSpan
         Assert.ThrowsExactly<InvalidCastException>(() =>
             array.GetSpan(ExecutionEngineLimits.Default));
 
-        byte[] expected = [1, 2];
+        byte[] expected = [.. ((StackItem)1).GetSafeSpan(), .. ((StackItem)2).GetSafeSpan()];
         CollectionAssert.AreEqual(expected, array.GetSafeSpan().ToArray());
         CollectionAssert.AreEqual(expected, array.AsSpan().ToArray());
 
@@ -142,7 +143,8 @@ public class UT_SafeSpan
     public void Size_MatchesAsSpanLength()
     {
         StackItem number = 7;
-        Assert.AreEqual(number.AsSpan().Length, number.Size);
+        Assert.AreEqual(1, number.Size);
+        Assert.AreEqual(Integer.MaxSize, number.AsSpan().Length);
 
         var array = new Array { 1, 2 };
         Assert.AreEqual(array.AsSpan().Length, array.Size);
@@ -240,11 +242,16 @@ public class UT_SafeSpan
         Map emptyMap = [];
         Assert.AreEqual(0, emptyArray.GetSafeSpan().Length);
         Assert.AreEqual(0, emptyMap.GetSafeSpan().Length);
-        CollectionAssert.AreEqual(new byte[] { 0 }, ((StackItem)0).GetSafeSpan().ToArray());
+        Assert.AreEqual(Integer.MaxSize, ((StackItem)0).GetSafeSpan().Length);
         CollectionAssert.AreEqual(new byte[] { 0 }, ((StackItem)false).GetSafeSpan().ToArray());
 
         var nested = new Array { new Array { 1, 2 }, 3 };
-        byte[] expected = [1, 2, 3];
+        byte[] expected =
+        [
+            .. ((StackItem)1).GetSafeSpan(),
+            .. ((StackItem)2).GetSafeSpan(),
+            .. ((StackItem)3).GetSafeSpan()
+        ];
         CollectionAssert.AreEqual(expected, nested.GetSafeSpan().ToArray());
     }
 
@@ -253,7 +260,7 @@ public class UT_SafeSpan
     {
         Map map = [];
         map[1] = map;
-        byte[] expected = [1];
+        byte[] expected = [.. ((StackItem)1).GetSafeSpan()];
         CollectionAssert.AreEqual(expected, map.GetSafeSpan().ToArray());
     }
 
