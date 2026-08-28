@@ -53,11 +53,7 @@ public class ByteString : PrimitiveType
     }
 
     public override int GetHashCode(ExecutionEngineLimits limits)
-    {
-        if (limits.Has(VmFeatures.ContentHashCode))
-            return GetSpan(limits).ToHashCode(397);
-        return base.GetHashCode(limits);
-    }
+        => base.GetHashCode(limits);
 
     internal override bool Equals(StackItem? other, ExecutionEngineLimits limits)
     {

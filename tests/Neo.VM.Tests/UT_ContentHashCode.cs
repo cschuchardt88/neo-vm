@@ -14,6 +14,8 @@ using Neo.VM;
 using Neo.VM.Extensions;
 using Neo.VM.Types;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Numerics;
 using Array = Neo.VM.Types.Array;
 using Boolean = Neo.VM.Types.Boolean;
@@ -193,15 +195,34 @@ public class UT_ContentHashCode
         Assert.AreEqual(data.AsSpan().ToHashCode(7), data.AsMemory().ToHashCode(7));
         Assert.AreEqual(0, System.Array.Empty<byte>().AsSpan().ToHashCode(0));
 
+        Memory<byte> memory = data;
+        Assert.AreEqual(data.AsSpan().ToHashCode(data.Length), memory.ToHashCode());
+        ReadOnlyMemory<byte> rom = data;
+        Assert.AreEqual(data.AsSpan().ToHashCode(data.Length), rom.ToHashCode());
+        Assert.AreEqual(data.AsSpan().ToHashCode(9), rom.ToHashCode(9));
+
         int[] nums = [1, 2];
         var expectedNums = 397;
         expectedNums = unchecked((expectedNums * 31) ^ 1);
         expectedNums = unchecked((expectedNums * 31) ^ 2);
         Assert.AreEqual(expectedNums, EnumerableExtensions.ToHashCode(nums));
 
-        var dict = new System.Collections.Generic.Dictionary<int, int> { [1] = 2 };
+        IList<int> list = new List<int> { 1, 2 };
+        Assert.AreEqual(expectedNums, list.ToHashCode());
+        IReadOnlyList<int> readOnlyList = new List<int> { 1, 2 };
+        Assert.AreEqual(expectedNums, ListExtensions.ToHashCode(readOnlyList));
+
+        List<string> withNull = [null, "a"];
+        var expectedNulls = 397;
+        expectedNulls = unchecked((expectedNulls * 31) ^ 0);
+        expectedNulls = unchecked((expectedNulls * 31) ^ "a".GetHashCode());
+        Assert.AreEqual(expectedNulls, EnumerableExtensions.ToHashCode(withNull));
+
+        var dict = new Dictionary<int, int> { [1] = 2 };
         var expectedDict = unchecked((397 * 31) + (1.GetHashCode() ^ 2.GetHashCode()));
-        Assert.AreEqual(expectedDict, DictionaryExtensions.ToHashCode((System.Collections.Generic.IDictionary<int, int>)dict));
+        Assert.AreEqual(expectedDict, DictionaryExtensions.ToHashCode((IDictionary<int, int>)dict));
+        IReadOnlyDictionary<int, int> readOnlyDict = dict;
+        Assert.AreEqual(expectedDict, DictionaryExtensions.ToHashCode(readOnlyDict));
     }
 
     [TestMethod]
@@ -209,19 +230,82 @@ public class UT_ContentHashCode
     {
         object missing = null;
         Assert.AreSame(StackItem.Null, missing.ToStackItem());
+
+        StackItem existing = 1;
+        Assert.AreSame(existing, existing.ToStackItem());
+
         Assert.IsInstanceOfType<Integer>(1.ToStackItem());
         Assert.AreEqual(1, 1.ToStackItem().GetInteger());
+        Assert.AreEqual(1, ((byte)1).ToStackItem().GetInteger());
+        Assert.AreEqual(-2, ((sbyte)(-2)).ToStackItem().GetInteger());
+        Assert.AreEqual(-3, ((short)(-3)).ToStackItem().GetInteger());
+        Assert.AreEqual(4, ((ushort)4).ToStackItem().GetInteger());
+        Assert.AreEqual(5u, ((uint)5).ToStackItem().GetInteger());
+        Assert.AreEqual(6L, ((long)6).ToStackItem().GetInteger());
+        Assert.AreEqual(7UL, ((ulong)7).ToStackItem().GetInteger());
+        Assert.AreEqual(new BigInteger(8), ((BigInteger)8).ToStackItem().GetInteger());
+
         Assert.IsInstanceOfType<Boolean>(true.ToStackItem());
         Assert.IsInstanceOfType<ByteString>("NEO".ToStackItem());
         byte[] data = [1, 2];
         Assert.IsInstanceOfType<ByteString>(data.ToStackItem());
+        Memory<byte> memory = data;
+        CollectionAssert.AreEqual(data, ((ByteString)memory.ToStackItem()).GetSpan().ToArray());
+        ReadOnlyMemory<byte> rom = data;
+        CollectionAssert.AreEqual(data, ((ByteString)rom.ToStackItem()).GetSpan().ToArray());
         Assert.IsInstanceOfType<Array>(new[] { 1, 2 }.ToStackItem());
 
-        var entries = new System.Collections.Generic.Dictionary<int, string> { [1] = "a" };
+        var entries = new Dictionary<int, string> { [1] = "a" };
         var map = (Map)entries.ToStackItem();
         Assert.AreEqual(1, map.Count);
         Assert.AreEqual("a", map[1].GetString());
 
+        var withNullValue = new Hashtable { [1] = null };
+        var nullMap = (Map)withNullValue.ToStackItem();
+        Assert.IsTrue(nullMap[1].IsNull);
+
+        var badKey = new Hashtable { [new object()] = 2 };
+        Assert.ThrowsExactly<InvalidCastException>(() => badKey.ToStackItem());
+
         Assert.IsInstanceOfType<InteropInterface>(new object().ToStackItem());
+    }
+
+    [TestMethod]
+    public void GetHashCode_WithoutFeature_UsesLegacy()
+    {
+        StackItem number = 7;
+        Assert.AreEqual(number.GetHashCode(ExecutionEngineLimits.Default), number.GetHashCode());
+        Assert.AreEqual(HashCode.Combine(new BigInteger(7)), number.GetHashCode());
+
+        StackItem flag = true;
+        Assert.AreEqual(HashCode.Combine(true), flag.GetHashCode());
+        Assert.AreNotEqual(1, flag.GetHashCode());
+
+        Assert.AreEqual(0, StackItem.Null.GetHashCode());
+        Assert.AreEqual(0, new Null().GetHashCode());
+
+        var script = new Script(System.Array.Empty<byte>());
+        var pointer = new Pointer(script, 1);
+        Assert.AreEqual(HashCode.Combine(script.GetHashCode(), 1), pointer.GetHashCode());
+        Assert.IsTrue(pointer.Equals(new Pointer(script, 1)));
+        Assert.IsFalse(pointer.Equals((StackItem)1));
+        Assert.IsFalse(((StackItem)true).Equals((StackItem)1));
+    }
+
+    [TestMethod]
+    public void GetHashCode_ContentHash_EveryType()
+    {
+        Assert.AreEqual(((StackItem)false).GetHashCode(ContentHash), ((StackItem)false).GetHashCode(ContentHash));
+        Assert.AreEqual(BigInteger.Zero.GetHashCode(), ((Integer)0).GetHashCode(ContentHash));
+
+        ByteString empty = System.Array.Empty<byte>();
+        Assert.AreEqual(empty.GetSpan(ContentHash).ToHashCode(397), empty.GetHashCode(ContentHash));
+
+        var emptyArray = new Array();
+        Assert.AreEqual(emptyArray.GetSafeSpan().ToHashCode(397), emptyArray.GetHashCode(ContentHash));
+        var emptyMap = new Map();
+        Assert.AreEqual(emptyMap.GetSafeSpan().ToHashCode(0), emptyMap.GetHashCode(ContentHash));
+        var emptyStruct = new Struct();
+        Assert.AreEqual(emptyStruct.GetSafeSpan().ToHashCode(397), emptyStruct.GetHashCode(ContentHash));
     }
 }
