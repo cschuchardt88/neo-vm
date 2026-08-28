@@ -15,8 +15,8 @@ using Neo.VM.Types;
 using System;
 using System.Numerics;
 using Array = Neo.VM.Types.Array;
-using Buffer = Neo.VM.Types.Buffer;
 using Boolean = Neo.VM.Types.Boolean;
+using Buffer = Neo.VM.Types.Buffer;
 
 namespace Neo.Test;
 
