@@ -74,13 +74,15 @@ public enum VmFeatures : ulong
 
     /// <summary>
     /// Host <see cref="object.GetHashCode"/> uses content hashing
-    /// (<c>ToHashCode</c> over <see cref="Types.StackItem.GetSpan(ExecutionEngineLimits)"/>).
+    /// (<c>Type</c>, size, and <c>ToHashCode</c> over
+    /// <see cref="Types.StackItem.GetSpan(ExecutionEngineLimits)"/>).
     /// </summary>
     /// <remarks>
-    /// Not a protocol hardfork. Off: ByteString uses XxHash3+Type; Array/Map/Struct
-    /// and Buffer throw. On: <c>(hash * 31) ^ byte</c> with seed 397. Call
-    /// <see cref="Types.StackItem.GetHashCode(ExecutionEngineLimits)"/> with this
-    /// flag; default <see cref="object.GetHashCode"/> stays master behavior.
+    /// Not a protocol hardfork. Off: Array/Map/Struct and Buffer throw.
+    /// On: hash is <c>HashCode.Combine(Type, span.Length, span.ToHashCode(397))</c>.
+    /// Parameterless <see cref="object.GetHashCode"/> is
+    /// <see cref="Types.StackItem.GetHashCode(ExecutionEngineLimits)"/> with
+    /// <see cref="ExecutionEngineLimits.Default"/>.
     /// </remarks>
     ContentHashCode = 1 << 4,
 }

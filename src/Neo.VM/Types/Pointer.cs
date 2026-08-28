@@ -11,6 +11,7 @@
 
 using Neo.VM.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Neo.VM.Types;
@@ -58,10 +59,12 @@ public class Pointer : StackItem
 
     public override int GetHashCode(ExecutionEngineLimits limits)
     {
-        if (limits.Has(VmFeatures.ContentHashCode))
-            return (31 * Position) ^ ((ReadOnlyMemory<byte>)Script).Span.ToHashCode(397);
-        return HashCode.Combine(Script.GetHashCode(), Position);
+        var span = GetSpan(limits);
+        return HashCode.Combine(Type, span.Length, Position, span.ToHashCode(397));
     }
+
+    protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
+        => ((ReadOnlyMemory<byte>)Script).Span;
 
     public override string ToString()
     {

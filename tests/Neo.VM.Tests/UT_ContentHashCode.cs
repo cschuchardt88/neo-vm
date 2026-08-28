@@ -47,7 +47,7 @@ public class UT_ContentHashCode
         StackItem itemB = "NEO";
         StackItem itemC = "SmartEconomy";
 
-        Assert.AreEqual(itemA.GetSpan(ContentHash).ToHashCode(397), itemA.GetHashCode(ContentHash));
+        Assert.AreEqual(ExpectedHash(itemA, ContentHash), itemA.GetHashCode(ContentHash));
         Assert.AreEqual(itemA.GetHashCode(ExecutionEngineLimits.Default), itemA.GetHashCode());
         Assert.AreEqual(itemB.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
         Assert.AreNotEqual(itemC.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
@@ -65,7 +65,7 @@ public class UT_ContentHashCode
 
         Assert.AreEqual(itemB.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
         Assert.AreNotEqual(itemC.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
-        Assert.AreEqual(itemA.GetSpan(ContentHash).ToHashCode(397), itemA.GetHashCode(ContentHash));
+        Assert.AreEqual(ExpectedHash(itemA, ContentHash), itemA.GetHashCode(ContentHash));
         Assert.ThrowsExactly<NotSupportedException>(() => itemA.GetHashCode());
     }
 
@@ -89,8 +89,8 @@ public class UT_ContentHashCode
         StackItem itemB = true;
         StackItem itemC = false;
 
-        Assert.AreEqual(1, itemA.GetHashCode(ContentHash));
-        Assert.AreEqual(0, itemC.GetHashCode(ContentHash));
+        Assert.AreEqual(ExpectedHash(itemA, ContentHash), itemA.GetHashCode(ContentHash));
+        Assert.AreEqual(ExpectedHash(itemC, ContentHash), itemC.GetHashCode(ContentHash));
         Assert.AreEqual(itemB.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
         Assert.AreNotEqual(itemC.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
     }
@@ -102,7 +102,7 @@ public class UT_ContentHashCode
         StackItem itemB = 1;
         StackItem itemC = 123;
 
-        Assert.AreEqual(new BigInteger(1).GetHashCode(), itemA.GetHashCode(ContentHash));
+        Assert.AreEqual(ExpectedHash(itemA, ContentHash), itemA.GetHashCode(ContentHash));
         Assert.AreEqual(itemB.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
         Assert.AreNotEqual(itemC.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
     }
@@ -110,8 +110,9 @@ public class UT_ContentHashCode
     [TestMethod]
     public void Null_ContentHash_IsZero()
     {
-        Assert.AreEqual(0, new Null().GetHashCode(ContentHash));
-        Assert.AreEqual(0, StackItem.Null.GetHashCode(ContentHash));
+        Assert.AreEqual(ExpectedHash(new Null(), ContentHash), new Null().GetHashCode(ContentHash));
+        Assert.AreEqual(ExpectedHash(StackItem.Null, ContentHash), StackItem.Null.GetHashCode(ContentHash));
+        Assert.AreEqual(new Null().GetHashCode(ExecutionEngineLimits.Default), new Null().GetHashCode());
     }
 
     [TestMethod]
@@ -123,7 +124,7 @@ public class UT_ContentHashCode
 
         Assert.AreEqual(itemB.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
         Assert.AreNotEqual(itemC.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
-        Assert.AreEqual(itemA.GetSafeSpan().ToHashCode(0 ^ 397), itemA.GetHashCode(ContentHash));
+        Assert.AreEqual(ExpectedHash(itemA, ContentHash), itemA.GetHashCode(ContentHash));
     }
 
     [TestMethod]
@@ -146,7 +147,7 @@ public class UT_ContentHashCode
 
         Assert.AreEqual(itemB.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
         Assert.AreNotEqual(itemC.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
-        Assert.AreEqual(itemA.GetSafeSpan().ToHashCode(0), itemA.GetHashCode(ContentHash));
+        Assert.AreEqual(ExpectedHash(itemA, ContentHash), itemA.GetHashCode(ContentHash));
     }
 
     [TestMethod]
@@ -183,8 +184,10 @@ public class UT_ContentHashCode
 
         Assert.AreEqual(itemB.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
         Assert.AreNotEqual(itemC.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
-        var expected = (31 * 123) ^ ((ReadOnlyMemory<byte>)script).Span.ToHashCode(397);
+        var span = itemA.GetSpan(ContentHash);
+        var expected = HashCode.Combine(itemA.Type, span.Length, itemA.Position, span.ToHashCode(397));
         Assert.AreEqual(expected, itemA.GetHashCode(ContentHash));
+        Assert.AreEqual(itemA.GetHashCode(ExecutionEngineLimits.Default), itemA.GetHashCode());
     }
 
     [TestMethod]
@@ -275,18 +278,18 @@ public class UT_ContentHashCode
     {
         StackItem number = 7;
         Assert.AreEqual(number.GetHashCode(ExecutionEngineLimits.Default), number.GetHashCode());
-        Assert.AreEqual(HashCode.Combine(new BigInteger(7)), number.GetHashCode());
+        Assert.AreEqual(ExpectedHash(number, ExecutionEngineLimits.Default), number.GetHashCode());
 
         StackItem flag = true;
-        Assert.AreEqual(HashCode.Combine(true), flag.GetHashCode());
-        Assert.AreNotEqual(1, flag.GetHashCode());
+        Assert.AreEqual(ExpectedHash(flag, ExecutionEngineLimits.Default), flag.GetHashCode());
 
-        Assert.AreEqual(0, StackItem.Null.GetHashCode());
-        Assert.AreEqual(0, new Null().GetHashCode());
+        Assert.AreEqual(ExpectedHash(StackItem.Null, ExecutionEngineLimits.Default), StackItem.Null.GetHashCode());
+        Assert.AreEqual(new Null().GetHashCode(ExecutionEngineLimits.Default), new Null().GetHashCode());
 
         var script = new Script(System.Array.Empty<byte>());
         var pointer = new Pointer(script, 1);
-        Assert.AreEqual(HashCode.Combine(script.GetHashCode(), 1), pointer.GetHashCode());
+        var pointerSpan = pointer.GetSpan();
+        Assert.AreEqual(HashCode.Combine(pointer.Type, pointerSpan.Length, pointer.Position, pointerSpan.ToHashCode(397)), pointer.GetHashCode());
         Assert.IsTrue(pointer.Equals(new Pointer(script, 1)));
         Assert.IsFalse(pointer.Equals((StackItem)1));
         Assert.IsFalse(((StackItem)true).Equals((StackItem)1));
@@ -296,16 +299,22 @@ public class UT_ContentHashCode
     public void GetHashCode_ContentHash_EveryType()
     {
         Assert.AreEqual(((StackItem)false).GetHashCode(ContentHash), ((StackItem)false).GetHashCode(ContentHash));
-        Assert.AreEqual(BigInteger.Zero.GetHashCode(), ((Integer)0).GetHashCode(ContentHash));
+        Assert.AreEqual(ExpectedHash((Integer)0, ContentHash), ((Integer)0).GetHashCode(ContentHash));
 
         ByteString empty = System.Array.Empty<byte>();
-        Assert.AreEqual(empty.GetSpan(ContentHash).ToHashCode(397), empty.GetHashCode(ContentHash));
+        Assert.AreEqual(ExpectedHash(empty, ContentHash), empty.GetHashCode(ContentHash));
 
         var emptyArray = new Array();
-        Assert.AreEqual(emptyArray.GetSafeSpan().ToHashCode(397), emptyArray.GetHashCode(ContentHash));
+        Assert.AreEqual(ExpectedHash(emptyArray, ContentHash), emptyArray.GetHashCode(ContentHash));
         var emptyMap = new Map();
-        Assert.AreEqual(emptyMap.GetSafeSpan().ToHashCode(0), emptyMap.GetHashCode(ContentHash));
+        Assert.AreEqual(ExpectedHash(emptyMap, ContentHash), emptyMap.GetHashCode(ContentHash));
         var emptyStruct = new Struct();
-        Assert.AreEqual(emptyStruct.GetSafeSpan().ToHashCode(397), emptyStruct.GetHashCode(ContentHash));
+        Assert.AreEqual(ExpectedHash(emptyStruct, ContentHash), emptyStruct.GetHashCode(ContentHash));
+    }
+
+    private static int ExpectedHash(StackItem item, ExecutionEngineLimits limits)
+    {
+        var span = item is CompoundType ? item.GetSafeSpan() : item.GetSpan(limits);
+        return HashCode.Combine(item.Type, span.Length, span.ToHashCode(397));
     }
 }

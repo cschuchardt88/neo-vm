@@ -43,10 +43,6 @@ public class Null : StackItem
         return false;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override int GetHashCode(ExecutionEngineLimits limits)
-        => 0;
-
     [return: MaybeNull]
     public override T GetInterface<T>()
     {

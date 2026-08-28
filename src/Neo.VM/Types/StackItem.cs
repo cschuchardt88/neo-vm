@@ -148,32 +148,27 @@ public abstract partial class StackItem : IEquatable<StackItem>
     }
 
     /// <summary>
-    /// Generates a hash code based on the item's span.
-    ///
-    /// This method provides a hash code for the StackItem based on its byte span.
-    /// It is used for efficient storage and retrieval in hash-based collections.
-    ///
-    /// Use this method when you need a hash code for a StackItem.
+    /// Hash using <see cref="ExecutionEngineLimits.Default"/>.
     /// </summary>
-    /// <returns>The hash code for the StackItem.</returns>
     public override int GetHashCode()
         => GetHashCode(ExecutionEngineLimits.Default);
 
     /// <summary>
-    /// Hash using <paramref name="limits"/>, same pattern as
-    /// <see cref="ConvertTo(StackItemType, ExecutionEngineLimits)"/> and
+    /// Hash of <see cref="Type"/>, <see cref="Size"/>, and
     /// <see cref="GetSpan(ExecutionEngineLimits)"/>.
-    /// With <see cref="VmFeatures.ContentHashCode"/> this is
-    /// <c>GetSpan(limits).ToHashCode(397)</c>; otherwise Type plus XxHash3 of the span.
     /// </summary>
     public virtual int GetHashCode(ExecutionEngineLimits limits)
     {
-        if (limits.Has(VmFeatures.ContentHashCode))
-            return GetSpan(limits).ToHashCode(397);
         if (_hashCode == 0)
-            _hashCode = HashCode.Combine(Type, GetSpan(limits).XxHash3_32());
+            _hashCode = CombineHash(GetSpan(limits));
         return _hashCode;
     }
+
+    /// <summary>
+    /// Mix <see cref="Type"/>, span length (size), and the span bytes.
+    /// </summary>
+    private protected int CombineHash(ReadOnlySpan<byte> span)
+        => HashCode.Combine(Type, span.Length, span.ToHashCode(397));
 
     /// <summary>
     /// Wrap the specified <see cref="object"/> and return an <see cref="InteropInterface"/> containing the <see cref="object"/>.

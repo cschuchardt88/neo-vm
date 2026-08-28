@@ -68,13 +68,6 @@ public class Integer : PrimitiveType
         return !value.IsZero;
     }
 
-    public override int GetHashCode(ExecutionEngineLimits limits)
-    {
-        if (limits.Has(VmFeatures.ContentHashCode))
-            return value.GetHashCode();
-        return HashCode.Combine(value);
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override BigInteger GetInteger()
     {

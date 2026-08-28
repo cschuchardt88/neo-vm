@@ -53,9 +53,6 @@ public class ByteString : PrimitiveType
         return Equals(b);
     }
 
-    public override int GetHashCode(ExecutionEngineLimits limits)
-        => base.GetHashCode(limits);
-
     internal override bool Equals(StackItem? other, ExecutionEngineLimits limits)
     {
         uint maxComparableSize = limits.MaxComparableSize;

@@ -9,7 +9,6 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
-using Neo.VM.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -67,16 +66,15 @@ public abstract class CompoundType : StackItem
 
     /// <summary>
     /// Without <see cref="VmFeatures.ContentHashCode"/> this throws.
-    /// With the feature, hashes <see cref="StackItem.GetSafeSpan()"/>
-    /// (opcode GetSpan still throws unless <see cref="VmFeatures.CompoundSpan"/> is on).
-    /// Array seed <c>StackReferences ^ 397</c>, Map seed <c>StackReferences * 397</c>.
+    /// With the feature, hashes <see cref="Type"/>, size, and
+    /// <see cref="StackItem.GetSafeSpan()"/> (opcode <see cref="StackItem.GetSpan(ExecutionEngineLimits)"/>
+    /// still throws unless <see cref="VmFeatures.CompoundSpan"/> is on).
     /// </summary>
     public override int GetHashCode(ExecutionEngineLimits limits)
     {
         if (!limits.Has(VmFeatures.ContentHashCode))
             throw new NotSupportedException("Mutable compound type does not support GetHashCode.");
-        var seed = this is Map ? StackReferences * 397 : StackReferences ^ 397;
-        return GetSafeSpan().ToHashCode(seed);
+        return CombineHash(GetSafeSpan());
     }
 
     public override string ToString()

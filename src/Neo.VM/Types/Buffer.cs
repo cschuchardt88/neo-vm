@@ -115,14 +115,14 @@ public class Buffer : StackItem
 
     /// <summary>
     /// Without <see cref="VmFeatures.ContentHashCode"/> this throws.
-    /// With the feature, hashes <see cref="StackItem.GetSpan(ExecutionEngineLimits)"/>
-    /// with seed 397.
+    /// With the feature, hashes <see cref="Type"/>, size, and
+    /// <see cref="StackItem.GetSpan(ExecutionEngineLimits)"/>.
     /// </summary>
     public override int GetHashCode(ExecutionEngineLimits limits)
     {
         if (!limits.Has(VmFeatures.ContentHashCode))
             throw new NotSupportedException("Mutable buffer does not support GetHashCode.");
-        return GetSpan(limits).ToHashCode(397);
+        return CombineHash(GetSpan(limits));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

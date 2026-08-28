@@ -53,13 +53,6 @@ public class Boolean : PrimitiveType
         return value;
     }
 
-    public override int GetHashCode(ExecutionEngineLimits limits)
-    {
-        if (limits.Has(VmFeatures.ContentHashCode))
-            return value ? 1 : 0;
-        return HashCode.Combine(value);
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override BigInteger GetInteger()
     {
