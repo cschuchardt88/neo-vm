@@ -58,8 +58,7 @@ public class UT_SafeSpan
     [TestMethod]
     public void Array_CircularReference_DoesNotRecurse()
     {
-        var array = new Array();
-        array.Add(1);
+        Array array = [1];
         array.Add(array);
         byte[] expected = [1];
         CollectionAssert.AreEqual(expected, array.GetSafeSpan().ToArray());
@@ -68,7 +67,7 @@ public class UT_SafeSpan
     [TestMethod]
     public void Struct_CircularReference_DoesNotRecurse()
     {
-        var s = new Struct();
+        Struct s = [];
         s.Add(s);
         Assert.AreEqual(0, s.GetSafeSpan().Length);
     }
@@ -170,8 +169,10 @@ public class UT_SafeSpan
     [TestMethod]
     public void EmptyAndNested_GetSafeSpan()
     {
-        Assert.AreEqual(0, new Array().GetSafeSpan().Length);
-        Assert.AreEqual(0, new Map().GetSafeSpan().Length);
+        Array emptyArray = [];
+        Map emptyMap = [];
+        Assert.AreEqual(0, emptyArray.GetSafeSpan().Length);
+        Assert.AreEqual(0, emptyMap.GetSafeSpan().Length);
         Assert.AreEqual(0, ((StackItem)0).GetSafeSpan().Length);
         CollectionAssert.AreEqual(new byte[] { 0 }, ((StackItem)false).GetSafeSpan().ToArray());
 
@@ -183,7 +184,7 @@ public class UT_SafeSpan
     [TestMethod]
     public void Map_CircularReference_DoesNotRecurse()
     {
-        var map = new Map();
+        Map map = [];
         map[1] = map;
         byte[] expected = [1];
         CollectionAssert.AreEqual(expected, map.GetSafeSpan().ToArray());
