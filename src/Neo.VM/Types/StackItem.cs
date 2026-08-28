@@ -204,18 +204,17 @@ public abstract partial class StackItem : IEquatable<StackItem>
 
     /// <summary>
     /// Get the readonly span used to read the VM object data.
-    /// Compounds throw; use <see cref="GetSpan(ExecutionEngineLimits)"/> or
-    /// <see cref="GetSafeSpan()"/> for Array/Map/Struct.
+    /// Same as <see cref="GetSpan(ExecutionEngineLimits)"/> with
+    /// <see cref="ExecutionEngineLimits.Default"/>.
     /// </summary>
-    public virtual ReadOnlySpan<byte> GetSpan()
-    {
-        throw new InvalidCastException();
-    }
+    public ReadOnlySpan<byte> GetSpan()
+        => GetSpan(ExecutionEngineLimits.Default);
 
     /// <summary>
-    /// Opcode path for splice handlers. Array/Map/Struct use
-    /// <see cref="GetSafeSpan()"/> when <see cref="VmFeatures.CompoundSpan"/>
-    /// is enabled; otherwise compounds throw like <see cref="GetSpan()"/>.
+    /// Opcode path for splice handlers. Derived types only override
+    /// <see cref="ComputeSpan"/>; this method always goes through
+    /// <see cref="GetSafeSpan()"/>. Array/Map/Struct require
+    /// <see cref="VmFeatures.CompoundSpan"/>.
     /// </summary>
     public ReadOnlySpan<byte> GetSpan(ExecutionEngineLimits limits)
     {
@@ -227,7 +226,7 @@ public abstract partial class StackItem : IEquatable<StackItem>
             limits.AssertMaxItemSize(span.Length);
             return span;
         }
-        return GetSpan();
+        return GetSafeSpan();
     }
 
     /// <summary>
