@@ -70,7 +70,7 @@ partial class JumpTable
         var fromType = x.Type;
         var toType = (StackItemType)instruction.TokenU8;
         var r2 = engine.ReferenceCounter.Count;
-        engine.Push(x.ConvertTo(toType));
+        engine.Push(x.ConvertTo(toType, engine.Limits));
         var (type, length) = (StackItemType.Any, 0);
         if (fromType == StackItemType.Array && toType == StackItemType.Struct || fromType == StackItemType.Struct && toType == StackItemType.Array)
         {

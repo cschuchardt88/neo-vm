@@ -253,6 +253,9 @@ partial class JumpTable
     {
         var shift = (int)engine.Pop().GetInteger();
         engine.Limits.AssertShift(shift);
+        // Pre-Gorgon (BoundedShift off): do not pop x when shift is 0.
+        if (shift == 0 && !engine.Limits.Has(VmFeatures.BoundedShift))
+            return;
         var x = engine.Pop().GetInteger();
         engine.Push(x << shift);
     }
@@ -270,6 +273,9 @@ partial class JumpTable
     {
         var shift = (int)engine.Pop().GetInteger();
         engine.Limits.AssertShift(shift);
+        // Pre-Gorgon (BoundedShift off): do not pop x when shift is 0.
+        if (shift == 0 && !engine.Limits.Has(VmFeatures.BoundedShift))
+            return;
         var x = engine.Pop().GetInteger();
         engine.Push(x >> shift);
     }

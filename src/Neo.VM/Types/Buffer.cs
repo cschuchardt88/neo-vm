@@ -70,7 +70,7 @@ public class Buffer : StackItem
         _keep_alive = true;
     }
 
-    public override StackItem ConvertTo(StackItemType type)
+    public override StackItem ConvertTo(StackItemType type, ExecutionEngineLimits limits)
     {
         switch (type)
         {
@@ -79,11 +79,11 @@ public class Buffer : StackItem
                     throw new InvalidCastException();
                 return new BigInteger(InnerBuffer.Span);
             case StackItemType.ByteString:
-                byte[] clone = GC.AllocateUninitializedArray<byte>(InnerBuffer.Length);
+                var clone = GC.AllocateUninitializedArray<byte>(InnerBuffer.Length);
                 InnerBuffer.CopyTo(clone);
                 return clone;
             default:
-                return base.ConvertTo(type);
+                return base.ConvertTo(type, limits);
         }
     }
 

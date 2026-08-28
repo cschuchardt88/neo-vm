@@ -24,7 +24,7 @@ public class Null : StackItem
 
     internal Null() { }
 
-    public override StackItem ConvertTo(StackItemType type)
+    public override StackItem ConvertTo(StackItemType type, ExecutionEngineLimits limits)
     {
         if (type == StackItemType.Any || !Enum.IsDefined(type))
             throw new InvalidCastException($"Type {nameof(Null)} can't be converted to StackItemType: {type}");

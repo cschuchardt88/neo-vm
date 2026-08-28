@@ -78,11 +78,11 @@ public class Array : CompoundType, IReadOnlyList<StackItem>
         InnerList.Clear();
     }
 
-    public override StackItem ConvertTo(StackItemType type)
+    public override StackItem ConvertTo(StackItemType type, ExecutionEngineLimits limits)
     {
         if (Type == StackItemType.Array && type == StackItemType.Struct)
             return new Struct(new List<StackItem>(InnerList));
-        return base.ConvertTo(type);
+        return base.ConvertTo(type, limits);
     }
 
     internal sealed override StackItem DeepCopy(Dictionary<StackItem, StackItem> refMap, bool asImmutable)

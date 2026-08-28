@@ -86,7 +86,16 @@ public class ExecutionEngine : IDisposable
     /// </summary>
     /// <param name="jumpTable">The jump table to be used.</param>
     public ExecutionEngine(JumpTable? jumpTable = null)
-        : this(jumpTable, new ReferenceCounter(), ExecutionEngineLimits.Default) { }
+        : this(jumpTable, ExecutionEngineLimits.Default) { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExecutionEngine"/> class
+    /// with the specified <see cref="ExecutionEngineLimits"/>.
+    /// </summary>
+    /// <param name="jumpTable">The jump table to be used.</param>
+    /// <param name="limits">Restrictions and opcode behavior flags.</param>
+    public ExecutionEngine(JumpTable? jumpTable, ExecutionEngineLimits limits)
+        : this(jumpTable, new ReferenceCounter(limits), limits) { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExecutionEngine"/> class
@@ -94,7 +103,7 @@ public class ExecutionEngine : IDisposable
     /// </summary>
     /// <param name="jumpTable">The jump table to be used.</param>
     /// <param name="referenceCounter">The reference counter to be used.</param>
-    /// <param name="limits">Restrictions on the VM.</param>
+    /// <param name="limits">Restrictions and opcode behavior flags.</param>
     internal ExecutionEngine(JumpTable? jumpTable, IReferenceCounter referenceCounter, ExecutionEngineLimits limits)
     {
         JumpTable = jumpTable ?? JumpTable.Default;

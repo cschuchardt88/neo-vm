@@ -20,9 +20,20 @@ namespace Neo.VM;
 public sealed record ExecutionEngineLimits
 {
     /// <summary>
-    /// The default strategy.
+    /// The default strategy (current opcode behavior).
     /// </summary>
-    public static readonly ExecutionEngineLimits Default = new();
+    public static readonly ExecutionEngineLimits Default = new() { Features = VmFeatureSets.Current };
+
+    /// <summary>
+    /// Opcode behavior flags. Protocol hardforks are mapped onto these in the
+    /// host; the VM only reads the flags.
+    /// </summary>
+    public VmFeatures Features { get; init; } = VmFeatureSets.Current;
+
+    /// <summary>
+    /// Returns whether <paramref name="feature"/> is enabled.
+    /// </summary>
+    public bool Has(VmFeatures feature) => (Features & feature) == feature;
 
     /// <summary>
     /// The maximum number of bits that <see cref="OpCode.SHL"/> and <see cref="OpCode.SHR"/> can shift.
