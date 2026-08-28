@@ -24,7 +24,7 @@ namespace Neo.VM.Middleware;
 /// </summary>
 public class DebuggerMiddleware : IEngineMiddleware
 {
-    private readonly Func<ExecutionEngine> _getEngine;
+    private readonly ExecutionEngine _engine;
     private readonly ILogger _logger;
     private readonly Dictionary<Script, HashSet<uint>> _breakPoints = [];
     private int _lastStepPosition = -1;
@@ -40,33 +40,20 @@ public class DebuggerMiddleware : IEngineMiddleware
     public bool StepMode { get; set; }
 
     private ExecutionEngine Engine
-        => _getEngine();
+        => _engine;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DebuggerMiddleware"/> class
     /// and registers it on <paramref name="engine"/>.
     /// </summary>
     /// <param name="engine">The <see cref="ExecutionEngine"/> to attach the debugger.</param>
-    /// <param name="logger">Optional logger for debug messages.</param>
+    /// <param name="logger">Optional logger for debug messages. Uses a no-op logger when omitted.</param>
     public DebuggerMiddleware(ExecutionEngine engine, ILogger? logger = null)
-        : this(() => engine, logger)
     {
         ArgumentNullException.ThrowIfNull(engine);
-        engine.Use(this);
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DebuggerMiddleware"/> class
-    /// with a factory used to resolve the engine (for dependency injection).
-    /// Does not register the middleware; the caller must add it to the pipeline.
-    /// </summary>
-    /// <param name="engineFactory">Factory that returns the execution engine.</param>
-    /// <param name="logger">Optional logger for debug messages.</param>
-    public DebuggerMiddleware(Func<ExecutionEngine> engineFactory, ILogger? logger = null)
-    {
-        ArgumentNullException.ThrowIfNull(engineFactory);
-        _getEngine = engineFactory;
+        _engine = engine;
         _logger = logger ?? NullLogger.Instance;
+        engine.Use(this);
     }
 
     /// <summary>

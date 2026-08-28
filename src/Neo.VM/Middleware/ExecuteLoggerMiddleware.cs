@@ -21,30 +21,19 @@ namespace Neo.VM.Middleware;
 /// </summary>
 public sealed class ExecuteLoggerMiddleware : IEngineMiddleware
 {
-    private readonly Func<ExecutionEngine> _getEngine;
+    private readonly ExecutionEngine _engine;
     private readonly ILogger _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExecuteLoggerMiddleware"/> class.
+    /// Attach it with <see cref="ExecutionEngine.Use"/>.
     /// </summary>
     /// <param name="engine">The execution engine to log.</param>
-    /// <param name="logger">Logger that receives execution messages.</param>
+    /// <param name="logger">Logger that receives execution messages. Uses a no-op logger when omitted.</param>
     public ExecuteLoggerMiddleware(ExecutionEngine engine, ILogger? logger = null)
-        : this(() => engine, logger)
     {
         ArgumentNullException.ThrowIfNull(engine);
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ExecuteLoggerMiddleware"/> class
-    /// with a factory used to resolve the engine (for dependency injection).
-    /// </summary>
-    /// <param name="engineFactory">Factory that returns the execution engine.</param>
-    /// <param name="logger">Logger that receives execution messages.</param>
-    public ExecuteLoggerMiddleware(Func<ExecutionEngine> engineFactory, ILogger? logger = null)
-    {
-        ArgumentNullException.ThrowIfNull(engineFactory);
-        _getEngine = engineFactory;
+        _engine = engine;
         _logger = logger ?? NullLogger.Instance;
     }
 
@@ -53,10 +42,9 @@ public sealed class ExecuteLoggerMiddleware : IEngineMiddleware
     {
         if (_logger.IsEnabled(LogLevel.Information))
         {
-            var engine = _getEngine();
-            _logger.LogExecuteMessage(LogLevel.Information, $"VM execution starting | State: {engine.State}");
-            if (engine.State == VMState.FAULT && engine.FaultException is not null)
-                _logger.LogFaultMessage(LogLevel.Critical, engine.FaultException, engine.FaultException.Message);
+            _logger.LogExecuteMessage(LogLevel.Information, $"VM execution starting | State: {_engine.State}");
+            if (_engine.State == VMState.FAULT && _engine.FaultException is not null)
+                _logger.LogFaultMessage(LogLevel.Critical, _engine.FaultException, _engine.FaultException.Message);
         }
 
         next();
@@ -90,10 +78,9 @@ public sealed class ExecuteLoggerMiddleware : IEngineMiddleware
     {
         if (_logger.IsEnabled(LogLevel.Information))
         {
-            var engine = _getEngine();
-            _logger.LogExecuteMessage(LogLevel.Information, $"VM execution finished | State: {engine.State}");
-            if (engine.State == VMState.FAULT && engine.FaultException is not null)
-                _logger.LogFaultMessage(LogLevel.Critical, engine.FaultException, engine.FaultException.Message);
+            _logger.LogExecuteMessage(LogLevel.Information, $"VM execution finished | State: {_engine.State}");
+            if (_engine.State == VMState.FAULT && _engine.FaultException is not null)
+                _logger.LogFaultMessage(LogLevel.Critical, _engine.FaultException, _engine.FaultException.Message);
         }
 
         next();

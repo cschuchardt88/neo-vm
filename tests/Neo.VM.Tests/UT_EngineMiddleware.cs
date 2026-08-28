@@ -11,10 +11,8 @@
 
 #nullable enable
 
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.VM;
-using Neo.VM.Extensions;
 using Neo.VM.Middleware;
 using System.Collections.Generic;
 
@@ -93,30 +91,6 @@ public class UT_EngineMiddleware
             "B.PostExecute",
             "B.PostExecution",
         }, events);
-    }
-
-    [TestMethod]
-    public void TestDependencyInjectionRegistersEngineAndDebugger()
-    {
-        var services = new ServiceCollection();
-        services
-            .AddEngineMiddlewareDebugger()
-            .AddExecutionEngine();
-
-        using var provider = services.BuildServiceProvider();
-        using var scope = provider.CreateScope();
-        var engine = scope.ServiceProvider.GetRequiredService<ExecutionEngine>();
-        var debugger = scope.ServiceProvider.GetRequiredService<DebuggerMiddleware>();
-
-        using ScriptBuilder sb = new();
-        sb.Emit(OpCode.NOP);
-        sb.Emit(OpCode.NOP);
-        sb.Emit(OpCode.RET);
-        engine.LoadScript(sb.ToArray());
-        debugger.AddBreakpoint(1);
-
-        Assert.AreEqual(VMState.BREAK, engine.Execute());
-        Assert.AreEqual(1, engine.CurrentContext!.InstructionPointer);
     }
 
     private sealed class RecordingMiddleware(string name, List<string> events) : IEngineMiddleware
