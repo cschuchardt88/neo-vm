@@ -95,8 +95,7 @@ public class Array : CompoundType, IReadOnlyList<StackItem>
     }
 
     /// <summary>
-    /// Item-by-item compare with a pair map so circular graphs do not recurse
-    /// (Rapid-Loop clone <c>objectMap</c>).
+    /// Item-by-item compare with a pair map so circular graphs do not recurse.
     /// </summary>
     internal bool EqualsContent(Array other, ExecutionEngineLimits limits, Dictionary<StackItem, StackItem> seen)
     {

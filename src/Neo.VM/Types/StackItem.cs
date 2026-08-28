@@ -217,8 +217,7 @@ public abstract partial class StackItem : IEquatable<StackItem>
     internal virtual IEnumerable<StackItem> GetChildren() => [];
 
     /// <summary>
-    /// Whether this object graph contains a circular reference
-    /// (Rapid-Loop neo-platform <c>HasCircularReference</c>).
+    /// Whether this object graph contains a circular reference.
     /// </summary>
     public bool HasCircularReference()
     {
