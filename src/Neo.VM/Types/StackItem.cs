@@ -320,38 +320,38 @@ public abstract partial class StackItem : IEquatable<StackItem>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte(StackItem value) => (byte)value.GetInteger();
+    public static explicit operator byte(StackItem value) => (byte)value.GetInteger();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator sbyte(StackItem value) => (sbyte)value.GetInteger();
+    public static explicit operator sbyte(StackItem value) => (sbyte)value.GetInteger();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator short(StackItem value) => (short)value.GetInteger();
+    public static explicit operator short(StackItem value) => (short)value.GetInteger();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ushort(StackItem value) => (ushort)value.GetInteger();
+    public static explicit operator ushort(StackItem value) => (ushort)value.GetInteger();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator int(StackItem value) => (int)value.GetInteger();
+    public static explicit operator int(StackItem value) => (int)value.GetInteger();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator uint(StackItem value) => (uint)value.GetInteger();
+    public static explicit operator uint(StackItem value) => (uint)value.GetInteger();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator long(StackItem value) => (long)value.GetInteger();
+    public static explicit operator long(StackItem value) => (long)value.GetInteger();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ulong(StackItem value) => (ulong)value.GetInteger();
+    public static explicit operator ulong(StackItem value) => (ulong)value.GetInteger();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator BigInteger(StackItem value) => value.GetInteger();
+    public static explicit operator BigInteger(StackItem value) => value.GetInteger();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator bool(StackItem value) => value.GetBoolean();
+    public static explicit operator bool(StackItem value) => value.GetBoolean();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte[](StackItem value) => [.. value.AsSpan()];
+    public static explicit operator byte[](StackItem value) => [.. value.AsSpan()];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator string(StackItem value) => value.ToString() ?? string.Empty;
+    public static explicit operator string(StackItem value) => value.ToString() ?? string.Empty;
 }

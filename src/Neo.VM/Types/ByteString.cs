@@ -122,7 +122,7 @@ public class ByteString : PrimitiveType
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte[](ByteString value) => value.Memory.ToArray();
+    public static explicit operator byte[](ByteString value) => value.Memory.ToArray();
 
     public override string ToString()
     {

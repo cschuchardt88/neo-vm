@@ -123,10 +123,10 @@ public class Buffer : StackItem
     public static implicit operator Buffer(byte[] value) => new(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator byte[](Buffer value) => value.GetSpan().ToArray();
+    public static explicit operator byte[](Buffer value) => value.GetSpan().ToArray();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator BigInteger(Buffer value)
+    public static explicit operator BigInteger(Buffer value)
     {
         var span = value.GetSpan();
         var length = Math.Min(span.Length, Integer.MaxSize);

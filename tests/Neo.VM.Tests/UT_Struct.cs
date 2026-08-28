@@ -34,9 +34,9 @@ public class UT_Struct
         Struct s1 = new() { 1, new Struct { 2 } };
         var s2 = s1.Clone(ExecutionEngineLimits.Default, out int _);
         s1[0] = 3;
-        Assert.AreEqual(1, s2[0].GetInteger());
+        Assert.AreEqual(1, s2[0]);
         ((Struct)s1[1])[0] = 3;
-        Assert.AreEqual(2, ((Struct)s2[1])[0].GetInteger());
+        Assert.AreEqual(2, ((Struct)s2[1])[0]);
         Assert.ThrowsExactly<InvalidOperationException>(() => _ = @struct.Clone(ExecutionEngineLimits.Default, out int _));
     }
 

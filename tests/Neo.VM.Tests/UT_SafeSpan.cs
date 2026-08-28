@@ -10,6 +10,7 @@
 // modifications are permitted.
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo.VM;
 using Neo.VM.Types;
 using System;
 using System.Numerics;
@@ -104,43 +105,78 @@ public class UT_SafeSpan
     }
 
     [TestMethod]
-    public void ImplicitConversions_FromStackItem()
+    public void ExplicitConversions_FromStackItem()
     {
         StackItem number = 42;
-        int i = number;
-        long l = number;
-        BigInteger big = number;
-        Assert.AreEqual(42, i);
-        Assert.AreEqual(42L, l);
-        Assert.AreEqual(new BigInteger(42), big);
+        Assert.AreEqual(42, (int)number);
+        Assert.AreEqual(42L, (long)number);
+        Assert.AreEqual(new BigInteger(42), (BigInteger)number);
+        Assert.AreEqual((byte)42, (byte)number);
+        Assert.AreEqual((sbyte)42, (sbyte)number);
+        Assert.AreEqual((short)42, (short)number);
+        Assert.AreEqual((ushort)42, (ushort)number);
+        Assert.AreEqual(42u, (uint)number);
+        Assert.AreEqual(42UL, (ulong)number);
 
         StackItem flag = true;
-        bool b = flag;
-        Assert.IsTrue(b);
+        Assert.IsTrue((bool)flag);
 
         byte[] data = [1, 2, 3];
         StackItem bytes = data;
-        byte[] roundTrip = bytes;
-        CollectionAssert.AreEqual(data, roundTrip);
+        CollectionAssert.AreEqual(data, (byte[])bytes);
 
-        string text = number;
-        Assert.AreEqual("42", text);
+        Assert.AreEqual("42", (string)number);
     }
 
     [TestMethod]
-    public void ImplicitConversions_IntegerAndBuffer()
+    public void ExplicitConversions_IntegerBooleanBuffer()
     {
         Integer n = 5;
-        int i = n;
-        BigInteger big = n;
-        Assert.AreEqual(5, i);
-        Assert.AreEqual(new BigInteger(5), big);
+        Assert.AreEqual(5, (int)n);
+        Assert.AreEqual(new BigInteger(5), (BigInteger)n);
+        Assert.IsTrue((bool)n);
+
+        Neo.VM.Types.Boolean flag = true;
+        Assert.IsTrue((bool)flag);
+        Assert.AreEqual(BigInteger.One, (BigInteger)flag);
 
         byte[] data = [1, 2];
         Buffer buffer = data;
-        byte[] copy = buffer;
-        CollectionAssert.AreEqual(data, copy);
-        BigInteger fromBuffer = buffer;
-        Assert.AreEqual(new BigInteger(data), fromBuffer);
+        CollectionAssert.AreEqual(data, (byte[])buffer);
+        Assert.AreEqual(new BigInteger(data), (BigInteger)buffer);
+
+        ByteString bs = data;
+        CollectionAssert.AreEqual(data, (byte[])bs);
+    }
+
+    [TestMethod]
+    public void EmptyAndNested_GetSafeSpan()
+    {
+        Assert.AreEqual(0, new Array().GetSafeSpan().Length);
+        Assert.AreEqual(0, new Map().GetSafeSpan().Length);
+        Assert.AreEqual(0, ((StackItem)0).GetSafeSpan().Length);
+        CollectionAssert.AreEqual(new byte[] { 0 }, ((StackItem)false).GetSafeSpan().ToArray());
+
+        var nested = new Array { new Array { 1, 2 }, 3 };
+        byte[] expected = [1, 2, 3];
+        CollectionAssert.AreEqual(expected, nested.GetSafeSpan().ToArray());
+    }
+
+    [TestMethod]
+    public void Map_CircularReference_DoesNotRecurse()
+    {
+        var map = new Map();
+        map[1] = map;
+        byte[] expected = [1];
+        CollectionAssert.AreEqual(expected, map.GetSafeSpan().ToArray());
+    }
+
+    [TestMethod]
+    public void PointerAndInterop_GetSafeSpan_IsEmpty()
+    {
+        var pointer = new Pointer(Script.Empty, 0);
+        Assert.AreEqual(0, pointer.GetSafeSpan().Length);
+        var interop = new InteropInterface(new object());
+        Assert.AreEqual(0, interop.GetSafeSpan().Length);
     }
 }
