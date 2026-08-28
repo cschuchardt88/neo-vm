@@ -9,6 +9,7 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
+using Neo.VM.Extensions;
 using System;
 using System.Diagnostics;
 
@@ -56,7 +57,12 @@ public class Pointer : StackItem
     }
 
     public override int GetHashCode()
+        => GetHashCode(ExecutionEngineLimits.Default);
+
+    public override int GetHashCode(ExecutionEngineLimits limits)
     {
+        if (limits.Has(VmFeatures.ContentHashCode))
+            return (31 * Position) ^ ((ReadOnlyMemory<byte>)Script).Span.ToHashCode(397);
         return HashCode.Combine(Script.GetHashCode(), Position);
     }
 

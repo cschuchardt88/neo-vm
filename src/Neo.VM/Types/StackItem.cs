@@ -9,6 +9,7 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
+using Neo.VM.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -157,11 +158,19 @@ public abstract partial class StackItem : IEquatable<StackItem>
     /// </summary>
     /// <returns>The hash code for the StackItem.</returns>
     public override int GetHashCode()
+        => GetHashCode(ExecutionEngineLimits.Default);
+
+    /// <summary>
+    /// Hash using <paramref name="limits"/>. With
+    /// <see cref="VmFeatures.ContentHashCode"/> this is Rapid-Loop
+    /// <c>AsSpan().ToHashCode(397)</c>; otherwise master XxHash3+Type.
+    /// </summary>
+    public virtual int GetHashCode(ExecutionEngineLimits limits)
     {
+        if (limits.Has(VmFeatures.ContentHashCode))
+            return AsSpan().ToHashCode(397);
         if (_hashCode == 0)
-        {
             _hashCode = HashCode.Combine(Type, GetSpan().XxHash3_32());
-        }
         return _hashCode;
     }
 

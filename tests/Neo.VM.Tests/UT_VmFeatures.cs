@@ -251,6 +251,7 @@ public class UT_VmFeatures
         Assert.IsTrue(engine.Limits.Has(VmFeatures.SafeSubStr));
         Assert.IsTrue(engine.Limits.Has(VmFeatures.StrictContainerAccess));
         Assert.IsFalse(engine.Limits.Has(VmFeatures.CompoundSpan));
+        Assert.IsFalse(engine.Limits.Has(VmFeatures.ContentHashCode));
     }
 
     [TestMethod]

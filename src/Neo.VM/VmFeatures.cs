@@ -71,6 +71,19 @@ public enum VmFeatures : ulong
     /// Host <c>AsSpan</c>/<c>GetSafeSpan</c> always work.
     /// </remarks>
     CompoundSpan = 1 << 3,
+
+    /// <summary>
+    /// Host <see cref="object.GetHashCode"/> uses Rapid-Loop content hashing
+    /// (<c>ToHashCode</c> over <see cref="Types.StackItem.AsSpan"/>).
+    /// </summary>
+    /// <remarks>
+    /// Not a protocol hardfork. Off: ByteString uses XxHash3+Type; Array/Map/Struct
+    /// and Buffer throw. On: same algorithm as neo-platform VMObject
+    /// (<c>(hash * 31) ^ byte</c>, seed 397). Call
+    /// <see cref="Types.StackItem.GetHashCode(ExecutionEngineLimits)"/> with this
+    /// flag; default <see cref="object.GetHashCode"/> stays master behavior.
+    /// </remarks>
+    ContentHashCode = 1 << 4,
 }
 
 /// <summary>

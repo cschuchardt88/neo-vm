@@ -9,6 +9,7 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
+using Neo.VM.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -64,7 +65,21 @@ public abstract class CompoundType : StackItem
         return true;
     }
 
-    public override int GetHashCode() => throw new NotSupportedException("Mutable compound type does not support GetHashCode.");
+    public override int GetHashCode()
+        => GetHashCode(ExecutionEngineLimits.Default);
+
+    /// <summary>
+    /// Without <see cref="VmFeatures.ContentHashCode"/> this throws (master).
+    /// With the feature, Rapid-Loop <c>AsSpan().ToHashCode</c>
+    /// (Array seed <c>StackReferences ^ 397</c>, Map seed <c>StackReferences * 397</c>).
+    /// </summary>
+    public override int GetHashCode(ExecutionEngineLimits limits)
+    {
+        if (!limits.Has(VmFeatures.ContentHashCode))
+            throw new NotSupportedException("Mutable compound type does not support GetHashCode.");
+        var seed = this is Map ? StackReferences * 397 : StackReferences ^ 397;
+        return AsSpan().ToHashCode(seed);
+    }
 
     public override string ToString()
     {

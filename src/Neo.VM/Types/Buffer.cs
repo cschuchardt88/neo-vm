@@ -9,6 +9,7 @@
 // Redistribution and use in source and binary forms with or without
 // modifications are permitted.
 
+using Neo.VM.Extensions;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -115,7 +116,19 @@ public class Buffer : StackItem
             : $"(\"Base64: {Convert.ToBase64String(GetSpan())}\")";
     }
 
-    public override int GetHashCode() => throw new NotSupportedException("Mutable buffer does not support GetHashCode.");
+    public override int GetHashCode()
+        => GetHashCode(ExecutionEngineLimits.Default);
+
+    /// <summary>
+    /// Without <see cref="VmFeatures.ContentHashCode"/> this throws (master).
+    /// With the feature, Rapid-Loop <c>ToHashCode(397)</c> over the buffer bytes.
+    /// </summary>
+    public override int GetHashCode(ExecutionEngineLimits limits)
+    {
+        if (!limits.Has(VmFeatures.ContentHashCode))
+            throw new NotSupportedException("Mutable buffer does not support GetHashCode.");
+        return GetSpan().ToHashCode(397);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Buffer(byte[] value) => new(value);
