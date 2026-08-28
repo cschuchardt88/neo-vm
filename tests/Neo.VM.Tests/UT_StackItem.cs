@@ -267,7 +267,7 @@ public class UT_StackItem
         };
 
         var removed = map.Remove(key, out _);
-        Assert.AreEqual(value, removed);
+        Assert.AreEqual((StackItem)value, removed);
         Assert.IsFalse(map.ContainsKey(key));
 
         removed = map.Remove(key, out _);

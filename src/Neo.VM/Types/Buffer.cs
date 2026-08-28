@@ -14,6 +14,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Neo.VM.Types;
 
@@ -117,4 +118,18 @@ public class Buffer : StackItem
     }
 
     public override int GetHashCode() => throw new NotSupportedException("Mutable buffer does not support GetHashCode.");
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator Buffer(byte[] value) => new(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator byte[](Buffer value) => value.GetSpan().ToArray();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator BigInteger(Buffer value)
+    {
+        var span = value.GetSpan();
+        var length = Math.Min(span.Length, Integer.MaxSize);
+        return new BigInteger(span[..length]);
+    }
 }

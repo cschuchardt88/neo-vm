@@ -12,6 +12,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.VM.Types;
 using System;
+using System.Numerics;
 using Array = Neo.VM.Types.Array;
 using Buffer = Neo.VM.Types.Buffer;
 
@@ -90,5 +91,56 @@ public class UT_SafeSpan
     {
         var array = new Array { 1 };
         Assert.ThrowsExactly<InvalidCastException>(() => array.GetSpan());
+    }
+
+    [TestMethod]
+    public void AsSpan_MatchesGetSafeSpan()
+    {
+        StackItem item = 7;
+        CollectionAssert.AreEqual(item.GetSafeSpan().ToArray(), item.AsSpan().ToArray());
+
+        var array = new Array { 1, 2 };
+        CollectionAssert.AreEqual(array.GetSafeSpan().ToArray(), array.AsSpan().ToArray());
+    }
+
+    [TestMethod]
+    public void ImplicitConversions_FromStackItem()
+    {
+        StackItem number = 42;
+        int i = number;
+        long l = number;
+        BigInteger big = number;
+        Assert.AreEqual(42, i);
+        Assert.AreEqual(42L, l);
+        Assert.AreEqual(new BigInteger(42), big);
+
+        StackItem flag = true;
+        bool b = flag;
+        Assert.IsTrue(b);
+
+        byte[] data = [1, 2, 3];
+        StackItem bytes = data;
+        byte[] roundTrip = bytes;
+        CollectionAssert.AreEqual(data, roundTrip);
+
+        string text = number;
+        Assert.AreEqual("42", text);
+    }
+
+    [TestMethod]
+    public void ImplicitConversions_IntegerAndBuffer()
+    {
+        Integer n = 5;
+        int i = n;
+        BigInteger big = n;
+        Assert.AreEqual(5, i);
+        Assert.AreEqual(new BigInteger(5), big);
+
+        byte[] data = [1, 2];
+        Buffer buffer = data;
+        byte[] copy = buffer;
+        CollectionAssert.AreEqual(data, copy);
+        BigInteger fromBuffer = buffer;
+        Assert.AreEqual(new BigInteger(data), fromBuffer);
     }
 }

@@ -137,9 +137,9 @@ public class UT_EvaluationStack
         Assert.AreEqual(3, stack.Count);
         CollectionAssert.AreEqual(new Integer[] { 1, 2, 3 }, stack.ToArray());
 
-        Assert.AreEqual(3, stack.Peek(0));
-        Assert.AreEqual(2, stack.Peek(1));
-        Assert.AreEqual(1, stack.Peek(-1));
+        Assert.AreEqual(3, stack.Peek(0).GetInteger());
+        Assert.AreEqual(2, stack.Peek(1).GetInteger());
+        Assert.AreEqual(1, stack.Peek(-1).GetInteger());
 
         Assert.ThrowsExactly<InvalidOperationException>(() => _ = stack.Peek(-4));
     }
@@ -149,9 +149,9 @@ public class UT_EvaluationStack
     {
         var stack = CreateOrderedStack(3);
 
-        Assert.AreEqual(3, stack.Pop());
-        Assert.AreEqual(2, stack.Pop());
-        Assert.AreEqual(1, stack.Pop());
+        Assert.AreEqual(3, stack.Pop().GetInteger());
+        Assert.AreEqual(2, stack.Pop().GetInteger());
+        Assert.AreEqual(1, stack.Pop().GetInteger());
 
         Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => _ = stack.Pop());
 

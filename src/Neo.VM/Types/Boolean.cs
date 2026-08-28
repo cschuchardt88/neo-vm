@@ -70,6 +70,12 @@ public class Boolean : PrimitiveType
         return value ? True : False;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator bool(Boolean value) => value.GetBoolean();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator BigInteger(Boolean value) => value.GetInteger();
+
     public override string ToString()
     {
         return value.ToString();

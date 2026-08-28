@@ -133,6 +133,36 @@ public class Integer : PrimitiveType
         return new Integer(value);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator BigInteger(Integer value) => value.GetInteger();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator byte(Integer value) => (byte)value.GetInteger();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator sbyte(Integer value) => (sbyte)value.GetInteger();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator short(Integer value) => (short)value.GetInteger();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator ushort(Integer value) => (ushort)value.GetInteger();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator int(Integer value) => (int)value.GetInteger();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator uint(Integer value) => (uint)value.GetInteger();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator long(Integer value) => (long)value.GetInteger();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator ulong(Integer value) => (ulong)value.GetInteger();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator bool(Integer value) => value.GetBoolean();
+
     public override string ToString()
     {
         return value.ToString();

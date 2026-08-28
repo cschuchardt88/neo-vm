@@ -121,6 +121,9 @@ public class ByteString : PrimitiveType
         return new ByteString(value.ToStrictUtf8Bytes());
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator byte[](ByteString value) => value.Memory.ToArray();
+
     public override string ToString()
     {
         return GetSpan().TryToStrictUtf8String(out var str)
