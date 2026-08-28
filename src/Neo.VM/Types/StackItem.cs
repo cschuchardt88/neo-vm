@@ -204,9 +204,31 @@ public abstract partial class StackItem : IEquatable<StackItem>
 
     /// <summary>
     /// Get the readonly span used to read the VM object data.
-    /// Same as Rapid-Loop <c>AsSpan</c>: cycle-safe <see cref="ComputeSpan"/>.
+    /// Compounds throw; use <see cref="GetSpan(ExecutionEngineLimits)"/> or
+    /// <see cref="GetSafeSpan()"/> for Array/Map/Struct.
     /// </summary>
-    public virtual ReadOnlySpan<byte> GetSpan() => AsSpan();
+    public virtual ReadOnlySpan<byte> GetSpan()
+    {
+        throw new InvalidCastException();
+    }
+
+    /// <summary>
+    /// Opcode path for splice handlers. Array/Map/Struct use
+    /// <see cref="GetSafeSpan()"/> when <see cref="VmFeatures.CompoundSpan"/>
+    /// is enabled; otherwise compounds throw like <see cref="GetSpan()"/>.
+    /// </summary>
+    public ReadOnlySpan<byte> GetSpan(ExecutionEngineLimits limits)
+    {
+        if (this is CompoundType)
+        {
+            if (!limits.Has(VmFeatures.CompoundSpan))
+                throw new InvalidCastException();
+            var span = GetSafeSpan();
+            limits.AssertMaxItemSize(span.Length);
+            return span;
+        }
+        return GetSpan();
+    }
 
     /// <summary>
     /// Cycle-safe byte representation (Rapid-Loop neo-platform

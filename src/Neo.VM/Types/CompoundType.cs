@@ -64,17 +64,6 @@ public abstract class CompoundType : StackItem
         return true;
     }
 
-    /// <summary>
-    /// Cycle-safe bytes via <see cref="StackItem.GetSafeSpan()"/>, capped at
-    /// <see cref="ExecutionEngineLimits.MaxItemSize"/>.
-    /// </summary>
-    public override ReadOnlySpan<byte> GetSpan()
-    {
-        var span = GetSafeSpan();
-        ExecutionEngineLimits.Default.AssertMaxItemSize(span.Length);
-        return span;
-    }
-
     public override int GetHashCode() => throw new NotSupportedException("Mutable compound type does not support GetHashCode.");
 
     public override string ToString()

@@ -56,6 +56,21 @@ public enum VmFeatures : ulong
     /// pop still type-checks the value (e.g. Buffer faults when on).
     /// </remarks>
     BoundedShift = 1 << 2,
+
+    /// <summary>
+    /// Splice opcodes (<see cref="OpCode.CAT"/>, <see cref="OpCode.SUBSTR"/>,
+    /// <see cref="OpCode.LEFT"/>, <see cref="OpCode.RIGHT"/>,
+    /// <see cref="OpCode.MEMCPY"/>) read Array/Map/Struct bytes via
+    /// <see cref="Types.StackItem.GetSafeSpan()"/>.
+    /// </summary>
+    /// <remarks>
+    /// Not a protocol hardfork. Off: compound <see cref="Types.StackItem.GetSpan()"/>
+    /// throws, so CAT/SUBSTR of Map/Array/Struct FAULT (current JSON tests).
+    /// On: compounds concatenate child spans, capped at
+    /// <see cref="ExecutionEngineLimits.MaxItemSize"/>.
+    /// Host <c>AsSpan</c>/<c>GetSafeSpan</c> always work.
+    /// </remarks>
+    CompoundSpan = 1 << 3,
 }
 
 /// <summary>

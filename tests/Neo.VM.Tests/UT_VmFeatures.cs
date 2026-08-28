@@ -12,7 +12,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.VM;
 using Neo.VM.Types;
+using System;
 using System.Numerics;
+using Buffer = Neo.VM.Types.Buffer;
 
 namespace Neo.Test;
 
@@ -248,5 +250,91 @@ public class UT_VmFeatures
         Assert.IsTrue(engine.Limits.Has(VmFeatures.BoundedShift));
         Assert.IsTrue(engine.Limits.Has(VmFeatures.SafeSubStr));
         Assert.IsTrue(engine.Limits.Has(VmFeatures.StrictContainerAccess));
+        Assert.IsFalse(engine.Limits.Has(VmFeatures.CompoundSpan));
+    }
+
+    [TestMethod]
+    public void Cat_Map_WithoutCompoundSpan_Faults()
+    {
+        using var engine = Engine(VmFeatureSets.Current);
+        using var sb = new ScriptBuilder();
+        sb.Emit(OpCode.NEWMAP);
+        sb.EmitPush(0);
+        sb.Emit(OpCode.CAT);
+        Assert.AreEqual(VMState.FAULT, Run(engine, sb));
+    }
+
+    [TestMethod]
+    public void Cat_EmptyMap_WithCompoundSpan_HaltsEmptyBuffer()
+    {
+        using var engine = Engine(VmFeatureSets.Current | VmFeatures.CompoundSpan);
+        using var sb = new ScriptBuilder();
+        sb.Emit(OpCode.NEWMAP);
+        sb.EmitPush(0);
+        sb.Emit(OpCode.CAT);
+        Assert.AreEqual(VMState.HALT, Run(engine, sb));
+        var result = engine.ResultStack.Pop();
+        Assert.IsInstanceOfType(result, typeof(Buffer));
+        Assert.AreEqual(0, result.GetSpan().Length);
+    }
+
+    [TestMethod]
+    public void Cat_Array_WithCompoundSpan_ConcatenatesChildBytes()
+    {
+        using var engine = Engine(VmFeatureSets.Current | VmFeatures.CompoundSpan);
+        using var sb = new ScriptBuilder();
+        sb.EmitPush(1);
+        sb.EmitPush(1);
+        sb.Emit(OpCode.PACK);
+        sb.EmitPush(2);
+        sb.Emit(OpCode.CAT);
+        Assert.AreEqual(VMState.HALT, Run(engine, sb));
+        byte[] expected = [1, 2];
+        CollectionAssert.AreEqual(expected, engine.ResultStack.Pop().GetSpan().ToArray());
+    }
+
+    [TestMethod]
+    public void SubStr_Map_WithoutCompoundSpan_Faults()
+    {
+        using var engine = Engine(VmFeatureSets.Current);
+        using var sb = new ScriptBuilder();
+        sb.Emit(OpCode.NEWMAP);
+        sb.EmitPush(0);
+        sb.EmitPush(0);
+        sb.Emit(OpCode.SUBSTR);
+        Assert.AreEqual(VMState.FAULT, Run(engine, sb));
+    }
+
+    [TestMethod]
+    public void SubStr_EmptyMap_WithCompoundSpan_HaltsEmptyBuffer()
+    {
+        using var engine = Engine(VmFeatureSets.Current | VmFeatures.CompoundSpan);
+        using var sb = new ScriptBuilder();
+        sb.Emit(OpCode.NEWMAP);
+        sb.EmitPush(0);
+        sb.EmitPush(0);
+        sb.Emit(OpCode.SUBSTR);
+        Assert.AreEqual(VMState.HALT, Run(engine, sb));
+        Assert.AreEqual(0, engine.ResultStack.Pop().GetSpan().Length);
+    }
+
+    [TestMethod]
+    public void Left_EmptyMap_WithCompoundSpan_CountGreaterThanLength_Faults()
+    {
+        using var engine = Engine(VmFeatureSets.Current | VmFeatures.CompoundSpan);
+        using var sb = new ScriptBuilder();
+        sb.Emit(OpCode.NEWMAP);
+        sb.EmitPush(1);
+        sb.Emit(OpCode.LEFT);
+        Assert.AreEqual(VMState.FAULT, Run(engine, sb));
+    }
+
+    [TestMethod]
+    public void CompoundSpan_GetSpan_ThrowsWithoutFeature()
+    {
+        var map = new Map();
+        Assert.ThrowsExactly<InvalidCastException>(() => map.GetSpan());
+        var enabled = ExecutionEngineLimits.Default with { Features = VmFeatures.CompoundSpan };
+        Assert.AreEqual(0, map.GetSpan(enabled).Length);
     }
 }

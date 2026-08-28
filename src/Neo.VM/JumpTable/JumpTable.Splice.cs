@@ -51,7 +51,7 @@ partial class JumpTable
         int si = (int)engine.Pop().GetInteger();
         if (si < 0)
             throw new InvalidOperationException($"The source index can not be negative for {nameof(OpCode.MEMCPY)}, index: {si}.");
-        ReadOnlySpan<byte> src = engine.Pop().GetSpan();
+        ReadOnlySpan<byte> src = engine.Pop().GetSpan(engine.Limits);
         if (checked(si + count) > src.Length)
             throw new InvalidOperationException($"The source index + count is out of range for {nameof(OpCode.MEMCPY)}, index: {si}, count: {count}, {si}/[0, {src.Length}].");
         int di = (int)engine.Pop().GetInteger();
@@ -77,8 +77,8 @@ partial class JumpTable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public virtual void Cat(ExecutionEngine engine, Instruction instruction, ref RunStats runStats)
     {
-        var x2 = engine.Pop().GetSpan();
-        var x1 = engine.Pop().GetSpan();
+        var x2 = engine.Pop().GetSpan(engine.Limits);
+        var x1 = engine.Pop().GetSpan(engine.Limits);
         int length = x1.Length + x2.Length;
         engine.Limits.AssertMaxItemSize(length);
         Buffer result = new(length, false);
@@ -105,7 +105,7 @@ partial class JumpTable
         int index = (int)engine.Pop().GetInteger();
         if (index < 0)
             throw new InvalidOperationException($"The index can not be negative for {nameof(OpCode.SUBSTR)}, index: {index}.");
-        var x = engine.Pop().GetSpan();
+        var x = engine.Pop().GetSpan(engine.Limits);
         // Pre-Echidna (SafeSubStr off): unchecked add can wrap past Length.
         var end = engine.Limits.Has(VmFeatures.SafeSubStr) ? checked(index + count) : index + count;
         if (end > x.Length)
@@ -130,7 +130,7 @@ partial class JumpTable
         int count = (int)engine.Pop().GetInteger();
         if (count < 0)
             throw new InvalidOperationException($"The count can not be negative for {nameof(OpCode.LEFT)}, count: {count}.");
-        var x = engine.Pop().GetSpan();
+        var x = engine.Pop().GetSpan(engine.Limits);
         if (count > x.Length)
             throw new InvalidOperationException($"The count is out of range for {nameof(OpCode.LEFT)}, {count}/[0, {x.Length}].");
         Buffer result = new(count, false);
@@ -153,7 +153,7 @@ partial class JumpTable
         int count = (int)engine.Pop().GetInteger();
         if (count < 0)
             throw new InvalidOperationException($"The count can not be negative for {nameof(OpCode.RIGHT)}, count: {count}.");
-        var x = engine.Pop().GetSpan();
+        var x = engine.Pop().GetSpan(engine.Limits);
         if (count > x.Length)
             throw new InvalidOperationException($"The count is out of range for {nameof(OpCode.RIGHT)}, {count}/[0, {x.Length}].");
         Buffer result = new(count, false);

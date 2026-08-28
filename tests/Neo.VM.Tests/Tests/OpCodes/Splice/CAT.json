@@ -44,7 +44,7 @@
       ]
     },
     {
-      "name": "CAT empty Map with integer 0",
+      "name": "Wrong type [Map,ByteString]",
       "script": [
         "PUSH0",
         "NEWMAP",
@@ -53,23 +53,18 @@
       "steps": [
         {
           "actions": [
-            "execute"
+            "stepInto",
+            "stepInto",
+            "stepInto"
           ],
           "result": {
-            "state": "HALT",
-            "resultStack": [
-              {
-                "type": "Buffer",
-                "value": ""
-              }
-            ],
-            "refs": 1
+            "state": "FAULT"
           }
         }
       ]
     },
     {
-      "name": "CAT empty Map then integer 0",
+      "name": "Wrong type [ByteString,Map]",
       "script": [
         "NEWMAP",
         "PUSH0",
@@ -78,17 +73,12 @@
       "steps": [
         {
           "actions": [
-            "execute"
+            "stepInto",
+            "stepInto",
+            "stepInto"
           ],
           "result": {
-            "state": "HALT",
-            "resultStack": [
-              {
-                "type": "Buffer",
-                "value": ""
-              }
-            ],
-            "refs": 1
+            "state": "FAULT"
           }
         }
       ]

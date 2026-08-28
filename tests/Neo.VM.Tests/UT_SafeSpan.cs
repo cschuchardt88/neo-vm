@@ -99,15 +99,23 @@ public class UT_SafeSpan
     }
 
     [TestMethod]
-    public void GetSpan_OnCompound_UsesGetSafeSpan()
+    public void GetSpan_OnCompound_ThrowsWithoutFeature()
     {
         var array = new Array { 1, 2 };
+        Assert.ThrowsExactly<InvalidCastException>(() => array.GetSpan());
+        Assert.ThrowsExactly<InvalidCastException>(() =>
+            array.GetSpan(ExecutionEngineLimits.Default));
+
         byte[] expected = [1, 2];
-        CollectionAssert.AreEqual(expected, array.GetSpan().ToArray());
-        CollectionAssert.AreEqual(array.GetSafeSpan().ToArray(), array.GetSpan().ToArray());
+        CollectionAssert.AreEqual(expected, array.GetSafeSpan().ToArray());
+        CollectionAssert.AreEqual(expected, array.AsSpan().ToArray());
+
+        var enabled = ExecutionEngineLimits.Default with { Features = VmFeatureSets.Current | VmFeatures.CompoundSpan };
+        CollectionAssert.AreEqual(expected, array.GetSpan(enabled).ToArray());
 
         var map = new Map { [1] = 2 };
-        CollectionAssert.AreEqual(expected, map.GetSpan().ToArray());
+        Assert.ThrowsExactly<InvalidCastException>(() => map.GetSpan());
+        CollectionAssert.AreEqual(expected, map.GetSpan(enabled).ToArray());
     }
 
     [TestMethod]
@@ -115,7 +123,10 @@ public class UT_SafeSpan
     {
         var data = new byte[(int)ExecutionEngineLimits.Default.MaxItemSize];
         var array = new Array { new ByteString(data), 1 };
-        Assert.ThrowsExactly<InvalidOperationException>(() => array.GetSpan());
+        Assert.ThrowsExactly<InvalidCastException>(() => array.GetSpan());
+
+        var enabled = ExecutionEngineLimits.Default with { Features = VmFeatureSets.Current | VmFeatures.CompoundSpan };
+        Assert.ThrowsExactly<InvalidOperationException>(() => array.GetSpan(enabled));
     }
 
     [TestMethod]

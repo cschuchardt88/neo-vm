@@ -138,17 +138,10 @@
         },
         {
           "actions": [
-            "execute"
+            "stepInto"
           ],
           "result": {
-            "state": "HALT",
-            "resultStack": [
-              {
-                "type": "Buffer",
-                "value": ""
-              }
-            ],
-            "refs": 1
+            "state": "FAULT"
           }
         }
       ]
