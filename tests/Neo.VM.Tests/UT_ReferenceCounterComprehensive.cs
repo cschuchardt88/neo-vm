@@ -502,6 +502,24 @@ public class UT_ReferenceCounterComprehensive
         Assert.AreEqual(1, engine.ReferenceCounter.Count);
     }
 
+    [TestMethod]
+    public void TestSlotStore_FailedPop_DoesNotCorruptRefCounter()
+    {
+        using ScriptBuilder sb = new();
+        sb.Emit(OpCode.INITSLOT, new byte[] { 1, 0 });
+        sb.EmitPush(42);
+        sb.Emit(OpCode.STLOC0);
+        sb.Emit(OpCode.STLOC0);
+
+        using var engine = new ExecutionEngine();
+        engine.LoadScript(sb.ToArray());
+
+        Assert.AreEqual(VMState.FAULT, engine.Execute());
+        // First STLOC0 stores 42; second STLOC0 pops an empty stack and FAULTs.
+        // Slot.Store pops before dropping the old slot value, so 42 stays referenced.
+        Assert.AreEqual(1, engine.ReferenceCounter.Count);
+    }
+
     #endregion
 
     #region 8. Stress Tests
