@@ -26,7 +26,7 @@ public class UT_JumpTable_Types
     {
         public List<(OpCode OpCode, RunStats Stats)> AllStats = new();
 
-        protected override void PostExecuteInstruction(Instruction instruction, RunStats runStats)
+        protected override void PostExecuteInstruction(Instruction? instruction, RunStats runStats)
         {
             AllStats.Add((instruction.OpCode, runStats));
             base.PostExecuteInstruction(instruction, runStats);
