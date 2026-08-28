@@ -65,11 +65,15 @@ public abstract class CompoundType : StackItem
     }
 
     /// <summary>
-    /// Opcode CAT/SUBSTR still require a fault for compounds. Use
-    /// <see cref="StackItem.AsSpan"/> for the cycle-safe byte walk.
+    /// Cycle-safe bytes via <see cref="StackItem.GetSafeSpan()"/>, capped at
+    /// <see cref="ExecutionEngineLimits.MaxItemSize"/>.
     /// </summary>
-    public override ReadOnlySpan<byte> GetSpan() =>
-        throw new InvalidCastException();
+    public override ReadOnlySpan<byte> GetSpan()
+    {
+        var span = GetSafeSpan();
+        ExecutionEngineLimits.Default.AssertMaxItemSize(span.Length);
+        return span;
+    }
 
     public override int GetHashCode() => throw new NotSupportedException("Mutable compound type does not support GetHashCode.");
 

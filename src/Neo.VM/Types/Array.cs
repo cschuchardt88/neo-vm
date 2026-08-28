@@ -133,6 +133,7 @@ public class Array : CompoundType, IReadOnlyList<StackItem>
             if (item is Null)
                 continue;
             result.AddRange(item.GetSafeSpan(visited));
+            ExecutionEngineLimits.Default.AssertMaxItemSize(result.Count);
         }
         return result.ToArray();
     }

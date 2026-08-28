@@ -99,16 +99,23 @@ public class UT_SafeSpan
     }
 
     [TestMethod]
-    public void GetSpan_OnCompound_StillThrows_AsSpanWorks()
+    public void GetSpan_OnCompound_UsesGetSafeSpan()
     {
         var array = new Array { 1, 2 };
-        Assert.ThrowsExactly<InvalidCastException>(() => array.GetSpan());
         byte[] expected = [1, 2];
-        CollectionAssert.AreEqual(expected, array.AsSpan().ToArray());
+        CollectionAssert.AreEqual(expected, array.GetSpan().ToArray());
+        CollectionAssert.AreEqual(array.GetSafeSpan().ToArray(), array.GetSpan().ToArray());
 
         var map = new Map { [1] = 2 };
-        Assert.ThrowsExactly<InvalidCastException>(() => map.GetSpan());
-        CollectionAssert.AreEqual(expected, map.AsSpan().ToArray());
+        CollectionAssert.AreEqual(expected, map.GetSpan().ToArray());
+    }
+
+    [TestMethod]
+    public void GetSpan_OnCompound_ExceedsMaxItemSize()
+    {
+        var data = new byte[(int)ExecutionEngineLimits.Default.MaxItemSize];
+        var array = new Array { new ByteString(data), 1 };
+        Assert.ThrowsExactly<InvalidOperationException>(() => array.GetSpan());
     }
 
     [TestMethod]

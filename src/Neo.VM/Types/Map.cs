@@ -180,7 +180,9 @@ public class Map : CompoundType, IReadOnlyDictionary<PrimitiveType, StackItem>
         foreach (var (key, value) in dictionary)
         {
             result.AddRange(key.GetSafeSpan(visited));
+            ExecutionEngineLimits.Default.AssertMaxItemSize(result.Count);
             result.AddRange(value.GetSafeSpan(visited));
+            ExecutionEngineLimits.Default.AssertMaxItemSize(result.Count);
         }
         return result.ToArray();
     }
