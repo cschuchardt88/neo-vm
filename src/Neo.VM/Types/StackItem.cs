@@ -136,7 +136,13 @@ public abstract partial class StackItem : IEquatable<StackItem>
         return ReferenceEquals(this, other);
     }
 
-    internal virtual bool Equals(StackItem? other, ExecutionEngineLimits limits)
+    /// <summary>
+    /// Compare this item to <paramref name="other"/> using <paramref name="limits"/>.
+    /// <see cref="OpCode.EQUAL"/> / <see cref="OpCode.NOTEQUAL"/> pass
+    /// <see cref="ExecutionEngine.Limits"/> so comparisons can honor
+    /// <see cref="VmFeatures"/> without storing flags on the item.
+    /// </summary>
+    public virtual bool Equals(StackItem? other, ExecutionEngineLimits limits)
     {
         return Equals(other);
     }

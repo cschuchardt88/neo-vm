@@ -58,6 +58,20 @@ public class Buffer : StackItem
         data.CopyTo(InnerBuffer.Span);
     }
 
+    public override bool Equals(StackItem? other)
+    {
+        if (ReferenceEquals(this, other)) return true;
+        if (!ExecutionEngineLimits.Default.Has(VmFeatures.IEquatableContent))
+            return false;
+        return other is Buffer b && GetSpan().SequenceEqual(b.GetSpan());
+    }
+
+    /// <summary>
+    /// <see cref="OpCode.EQUAL"/> stays reference equality for buffers (neo#4042).
+    /// </summary>
+    public override bool Equals(StackItem? other, ExecutionEngineLimits limits) =>
+        ReferenceEquals(this, other);
+
     internal override void Cleanup()
     {
         if (!_keep_alive)

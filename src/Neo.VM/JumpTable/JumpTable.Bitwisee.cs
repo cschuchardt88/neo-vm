@@ -91,6 +91,7 @@ partial class JumpTable
     {
         var x2 = engine.Pop();
         var x1 = engine.Pop();
+        // Pass Limits so ByteString/Struct compares honor MaxComparableSize and VmFeatures.
         engine.Push(x1.Equals(x2, engine.Limits));
     }
 
@@ -107,6 +108,7 @@ partial class JumpTable
     {
         var x2 = engine.Pop();
         var x1 = engine.Pop();
+        // Same Limits path as EQUAL.
         engine.Push(!x1.Equals(x2, engine.Limits));
     }
 }

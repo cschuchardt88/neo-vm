@@ -248,5 +248,6 @@ public class UT_VmFeatures
         Assert.IsTrue(engine.Limits.Has(VmFeatures.BoundedShift));
         Assert.IsTrue(engine.Limits.Has(VmFeatures.SafeSubStr));
         Assert.IsTrue(engine.Limits.Has(VmFeatures.StrictContainerAccess));
+        Assert.IsTrue(engine.Limits.Has(VmFeatures.IEquatableContent));
     }
 }

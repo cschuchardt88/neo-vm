@@ -249,8 +249,9 @@ public class UT_StackItem
             new Struct { 1, 2, 3 }
         };
         a.Add(a);
-        Array aa = (Array)a.DeepCopy();
-        Assert.AreNotEqual(a, aa);
+        var aa = a.DeepCopy() as Array;
+        Assert.IsNotNull(aa);
+        Assert.IsFalse(a.Equals(aa, ExecutionEngineLimits.Default));
         Assert.AreSame(aa, aa[^1]);
         Assert.IsTrue(a[^2].Equals(aa[^2], ExecutionEngineLimits.Default));
         Assert.AreNotSame(a[^2], aa[^2]);
@@ -278,5 +279,102 @@ public class UT_StackItem
 
         var readonlyMap = (Map)map.DeepCopy(true);
         Assert.ThrowsExactly<System.InvalidOperationException>(() => readonlyMap.Remove(key, out _));
+    }
+
+    [TestMethod]
+    public void TestIEquatable()
+    {
+        byte[] one = [1];
+        StackItem expectedBoolean = true;
+        StackItem expectedInteger = 1;
+        StackItem expectedByteString = one;
+
+        var expectedBuffer = new Buffer(one);
+        var expectedMap = new Map { [0] = 1, [2] = 3 };
+        var expectedStruct = new Struct { 1, 2, 3 };
+        var expectedArray = new Array
+        {
+            null,
+            true,
+            1,
+            one,
+            StackItem.Null,
+            new Buffer(one),
+            new Map { [0] = 1, [2] = 3 },
+            new Struct { 1, 2, 3 }
+        };
+
+        Boolean actualBooleanOne = true;
+        Boolean actualBooleanTwo = false;
+        Integer actualIntegerOne = 1;
+        Integer actualIntegerTwo = 2;
+        ByteString actualByteStringOne = one;
+        byte[] two = [2];
+        ByteString actualByteStringTwo = two;
+        var actualBufferOne = new Buffer(one);
+        var actualBufferTwo = new Buffer(two);
+        var actualMapOne = new Map { [0] = 1, [2] = 3 };
+        var actualMapTwo = new Map { [4] = 5, [6] = 7 };
+        var actualStructOne = new Struct { 1, 2, 3 };
+        var actualStructTwo = new Struct { 4, 5, 6 };
+        var actualArrayOne = new Array
+        {
+            null,
+            true,
+            1,
+            one,
+            StackItem.Null,
+            new Buffer(one),
+            new Map { [0] = 1, [2] = 3 },
+            new Struct { 1, 2, 3 }
+        };
+        var actualArrayTwo = new Array
+        {
+            new Struct { 1, 2, 3 },
+            new Map { [0] = 1, [2] = 3 },
+            new Buffer(one),
+            StackItem.Null,
+            one,
+            1,
+            true,
+            null,
+        };
+
+        Assert.AreEqual(expectedBoolean, actualBooleanOne);
+        Assert.AreEqual(expectedInteger, actualIntegerOne);
+        Assert.AreEqual(expectedByteString, actualByteStringOne);
+        Assert.AreEqual(expectedBuffer, actualBufferOne);
+        Assert.AreEqual(expectedMap, actualMapOne);
+        Assert.AreEqual(expectedStruct, actualStructOne);
+        Assert.AreEqual(expectedArray, actualArrayOne);
+
+        Assert.AreNotEqual(expectedBoolean, actualBooleanTwo);
+        Assert.AreNotEqual(expectedInteger, actualIntegerTwo);
+        Assert.AreNotEqual(expectedByteString, actualByteStringTwo);
+        Assert.AreNotEqual(expectedBuffer, actualBufferTwo);
+        Assert.AreNotEqual(expectedMap, actualMapTwo);
+        Assert.AreNotEqual(expectedStruct, actualStructTwo);
+        Assert.AreNotEqual(expectedArray, actualArrayTwo);
+
+        Assert.IsFalse(expectedArray.Equals(actualArrayOne, ExecutionEngineLimits.Default));
+        Assert.IsFalse(expectedBuffer.Equals(actualBufferOne, ExecutionEngineLimits.Default));
+        Assert.IsFalse(expectedMap.Equals(actualMapOne, ExecutionEngineLimits.Default));
+    }
+
+    [TestMethod]
+    public void EqualOpcode_ArraysStayReferenceEquality()
+    {
+        using var engine = new ExecutionEngine();
+        using var sb = new ScriptBuilder();
+        sb.EmitPush(1);
+        sb.EmitPush(1);
+        sb.Emit(OpCode.PACK);
+        sb.EmitPush(1);
+        sb.EmitPush(1);
+        sb.Emit(OpCode.PACK);
+        sb.Emit(OpCode.EQUAL);
+        engine.LoadScript(sb.ToArray());
+        Assert.AreEqual(VMState.HALT, engine.Execute());
+        Assert.IsFalse(engine.ResultStack.Pop().GetBoolean());
     }
 }

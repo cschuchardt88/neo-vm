@@ -75,12 +75,25 @@ public class Struct : Array
         return base.ConvertTo(type, limits);
     }
 
+    /// <summary>
+    /// With <see cref="VmFeatures.IEquatableContent"/>, host/IEquatable compare
+    /// uses default limits. Otherwise this throws; use
+    /// <see cref="Equals(StackItem, ExecutionEngineLimits)"/>.
+    /// </summary>
     public override bool Equals(StackItem? other)
     {
-        throw new NotSupportedException();
+        if (!ExecutionEngineLimits.Default.Has(VmFeatures.IEquatableContent))
+            throw new NotSupportedException();
+        return Equals(other, ExecutionEngineLimits.Default);
     }
 
-    internal override bool Equals(StackItem? other, ExecutionEngineLimits limits)
+    /// <summary>
+    /// Nested struct compare under <paramref name="limits"/>
+    /// (<see cref="ExecutionEngineLimits.MaxComparableSize"/>,
+    /// <see cref="ExecutionEngineLimits.MaxStackSize"/>, and
+    /// <see cref="VmFeatures"/>).
+    /// </summary>
+    public override bool Equals(StackItem? other, ExecutionEngineLimits limits)
     {
         if (other is not Struct s) return false;
         Stack<StackItem> stack1 = new();

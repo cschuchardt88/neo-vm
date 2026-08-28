@@ -91,6 +91,34 @@ public class Map : CompoundType, IReadOnlyDictionary<PrimitiveType, StackItem>
         }
     }
 
+    public override bool Equals(StackItem? other)
+    {
+        if (ReferenceEquals(this, other)) return true;
+        if (!ExecutionEngineLimits.Default.Has(VmFeatures.IEquatableContent))
+            return false;
+        if (other is not Map m || Count != m.Count)
+            return false;
+        foreach (var (k, v) in dictionary)
+        {
+            if (!m.TryGetValue(k, out var ov))
+                return false;
+            if (v is null)
+            {
+                if (ov is not null) return false;
+                continue;
+            }
+            if (!v.Equals(ov))
+                return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// <see cref="OpCode.EQUAL"/> stays reference equality for maps (neo#4042).
+    /// </summary>
+    public override bool Equals(StackItem? other, ExecutionEngineLimits limits) =>
+        ReferenceEquals(this, other);
+
     public override void Clear()
     {
         if (IsReadOnly) throw new InvalidOperationException("The map is readonly, can not clear.");

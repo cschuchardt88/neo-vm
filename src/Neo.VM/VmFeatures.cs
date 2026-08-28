@@ -56,6 +56,20 @@ public enum VmFeatures : ulong
     /// pop still type-checks the value (e.g. Buffer faults when on).
     /// </remarks>
     BoundedShift = 1 << 2,
+
+    /// <summary>
+    /// <see cref="Types.StackItem.Equals(Types.StackItem)"/> uses content
+    /// equality so <see cref="IEquatable{T}"/> / host asserts work
+    /// (neo#4042 / neo#2983).
+    /// </summary>
+    /// <remarks>
+    /// Not a protocol hardfork. <see cref="OpCode.EQUAL"/> still calls
+    /// <c>Equals(other, limits)</c>, which stays reference equality for
+    /// Array/Map/Buffer. Off: <c>Equals(other)</c> is reference-only and
+    /// <see cref="Types.Struct.Equals(Types.StackItem)"/> throws.
+    /// On: Array/Map/Buffer/Struct compare contents for the no-limits overload.
+    /// </remarks>
+    IEquatableContent = 1 << 3,
 }
 
 /// <summary>
@@ -68,5 +82,5 @@ public static class VmFeatureSets
     /// <see cref="ExecutionEngineLimits"/> use this set.
     /// </summary>
     public const VmFeatures Current =
-        VmFeatures.SafeSubStr | VmFeatures.StrictContainerAccess | VmFeatures.BoundedShift;
+        VmFeatures.SafeSubStr | VmFeatures.StrictContainerAccess | VmFeatures.BoundedShift | VmFeatures.IEquatableContent;
 }

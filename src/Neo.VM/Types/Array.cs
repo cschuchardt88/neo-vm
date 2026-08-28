@@ -72,6 +72,34 @@ public class Array : CompoundType, IReadOnlyList<StackItem>
         InnerList.Add(item);
     }
 
+    public override bool Equals(StackItem? other)
+    {
+        if (ReferenceEquals(this, other)) return true;
+        if (!ExecutionEngineLimits.Default.Has(VmFeatures.IEquatableContent))
+            return false;
+        if (other is not Array a || Type != a.Type || Count != a.Count)
+            return false;
+        for (var i = 0; i < Count; i++)
+        {
+            var left = this[i];
+            var right = a[i];
+            if (left is null)
+            {
+                if (right is not null) return false;
+                continue;
+            }
+            if (!left.Equals(right))
+                return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// <see cref="OpCode.EQUAL"/> stays reference equality for arrays (neo#4042).
+    /// </summary>
+    public override bool Equals(StackItem? other, ExecutionEngineLimits limits) =>
+        ReferenceEquals(this, other);
+
     public override void Clear()
     {
         if (IsReadOnly) throw new InvalidOperationException("The array is readonly, can not clear.");
