@@ -82,7 +82,7 @@ public class Boolean : PrimitiveType
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator BigInteger(Boolean value)
-        => Integer.ToUnsignedBigInteger(value.GetInteger());
+        => value.GetInteger();
 
     public override string ToString()
     {

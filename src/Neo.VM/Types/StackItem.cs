@@ -84,9 +84,9 @@ public abstract partial class StackItem : IEquatable<StackItem>
     public abstract StackItemType Type { get; }
 
     /// <summary>
-    /// Byte length of <see cref="AsSpan"/>. Same as Rapid-Loop <c>VMObject.Size</c>.
+    /// Byte length of parameterless GetSpan. Same as Rapid-Loop <c>VMObject.Size</c>.
     /// </summary>
-    public virtual int Size => AsSpan().Length;
+    public virtual int Size => GetSpan().Length;
 
     /// <summary>
     /// Convert the VM object to the specified type using default engine limits
@@ -233,15 +233,10 @@ public abstract partial class StackItem : IEquatable<StackItem>
     }
 
     /// <summary>
-    /// Cycle-safe byte representation (Rapid-Loop neo-platform
-    /// <c>AsSpan</c> / <c>GetSafeSpan</c>).
+    /// Cycle-safe byte representation. Compounds always succeed here;
+    /// parameterless GetSpan follows opcode limits.
     /// </summary>
-    public ReadOnlySpan<byte> AsSpan() => GetSafeSpan();
-
-    /// <summary>
-    /// Cycle-safe byte representation. Same as <see cref="AsSpan"/>.
-    /// </summary>
-    public ReadOnlySpan<byte> GetSafeSpan()
+    internal ReadOnlySpan<byte> GetSafeSpan()
     {
         var visited = new HashSet<StackItem>(ReferenceEqualityComparer.Instance);
         return GetSafeSpan(visited);
@@ -384,15 +379,13 @@ public abstract partial class StackItem : IEquatable<StackItem>
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator BigInteger(StackItem value)
-        => value is Integer integer
-            ? (BigInteger)integer
-            : Integer.ToUnsignedBigInteger(value.AsSpan());
+        => value.GetInteger();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator bool(StackItem value) => value.GetBoolean();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static explicit operator byte[](StackItem value) => [.. value.AsSpan()];
+    public static explicit operator byte[](StackItem value) => [.. value.GetSpan()];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator string(StackItem value) => value.ToString() ?? string.Empty;
