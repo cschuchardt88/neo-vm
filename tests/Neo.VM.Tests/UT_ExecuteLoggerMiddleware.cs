@@ -13,10 +13,12 @@
 
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo.Test.Types;
 using Neo.VM;
+using Neo.VM.Extensions;
+using Neo.VM.Logging;
 using Neo.VM.Middleware;
 using System;
-using System.Collections.Generic;
 
 namespace Neo.Test;
 
@@ -40,6 +42,23 @@ public class UT_ExecuteLoggerMiddleware
         Assert.IsTrue(logger.Messages.Exists(static m => m.Contains("VM execution starting")));
         Assert.IsTrue(logger.Messages.Exists(static m => m.Contains("NOP")));
         Assert.IsTrue(logger.Messages.Exists(static m => m.Contains("VM execution finished") && m.Contains("HALT")));
+        Assert.IsTrue(logger.Entries.Exists(static e => e.EventId.Id == VirtualMachineEventId.Execute));
+    }
+
+    [TestMethod]
+    public void TestLogsOpcodeOperand()
+    {
+        var logger = new CollectingLogger();
+        using var engine = new ExecutionEngine();
+        engine.Use(new ExecuteLoggerMiddleware(engine, logger));
+
+        using ScriptBuilder sb = new();
+        sb.Emit(OpCode.PUSHINT8, [0xAB]);
+        sb.Emit(OpCode.RET);
+        engine.LoadScript(sb.ToArray());
+
+        Assert.AreEqual(VMState.HALT, engine.Execute());
+        Assert.IsTrue(logger.Messages.Exists(static m => m.Contains("PUSHINT8") && m.Contains("AB", StringComparison.OrdinalIgnoreCase)));
     }
 
     [TestMethod]
@@ -56,27 +75,61 @@ public class UT_ExecuteLoggerMiddleware
         Assert.AreEqual(VMState.FAULT, engine.Execute());
         Assert.IsNotNull(engine.FaultException);
         Assert.IsTrue(logger.Messages.Exists(static m => m.Contains("VM execution finished") && m.Contains("FAULT")));
+        Assert.IsTrue(logger.Entries.Exists(static e => e.EventId.Id == VirtualMachineEventId.Fault && e.Exception is not null));
+
+        logger.Messages.Clear();
+        logger.Entries.Clear();
+        Assert.AreEqual(VMState.FAULT, engine.Execute());
+        Assert.IsTrue(logger.Messages.Exists(static m => m.Contains("VM execution starting") && m.Contains("FAULT")));
+        Assert.IsTrue(logger.Entries.Exists(static e => e.Level == LogLevel.Critical && e.Exception is not null));
     }
 
-    private sealed class CollectingLogger : ILogger
+    [TestMethod]
+    public void TestNullLoggerDoesNotThrow()
     {
-        public List<string> Messages { get; } = [];
+        using var engine = new ExecutionEngine();
+        engine.Use(new ExecuteLoggerMiddleware(engine));
 
-        public IDisposable BeginScope<TState>(TState state) where TState : notnull
-            => NullScope.Instance;
+        using ScriptBuilder sb = new();
+        sb.Emit(OpCode.RET);
+        engine.LoadScript(sb.ToArray());
+        Assert.AreEqual(VMState.HALT, engine.Execute());
+    }
 
-        public bool IsEnabled(LogLevel logLevel)
-            => true;
+    [TestMethod]
+    public void TestNullEngineThrows()
+    {
+        Assert.ThrowsExactly<ArgumentNullException>(() => new ExecuteLoggerMiddleware(null!));
+    }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-        {
-            Messages.Add(formatter(state, exception));
-        }
+    [TestMethod]
+    public void TestDisabledLoggerSkipsWrites()
+    {
+        var logger = new CollectingLogger { MinLevel = LogLevel.None };
+        using var engine = new ExecutionEngine();
+        engine.Use(new ExecuteLoggerMiddleware(engine, logger));
 
-        private sealed class NullScope : IDisposable
-        {
-            public static readonly NullScope Instance = new();
-            public void Dispose() { }
-        }
+        using ScriptBuilder sb = new();
+        sb.Emit(OpCode.RET);
+        engine.LoadScript(sb.ToArray());
+        Assert.AreEqual(VMState.HALT, engine.Execute());
+        Assert.HasCount(0, logger.Messages);
+    }
+
+    [TestMethod]
+    public void TestLoggerExtensions()
+    {
+        var logger = new CollectingLogger();
+        logger.LogExecuteMessage(LogLevel.Information, "exec");
+        logger.LogFaultMessage(LogLevel.Error, new InvalidOperationException("boom"), "fault");
+        logger.LogBreakMessage(LogLevel.Debug, "break");
+
+        Assert.AreEqual(VirtualMachineEventId.Execute, logger.Entries[0].EventId.Id);
+        Assert.AreEqual("exec", logger.Entries[0].Message);
+        Assert.AreEqual(VirtualMachineEventId.Fault, logger.Entries[1].EventId.Id);
+        Assert.AreEqual("fault", logger.Entries[1].Message);
+        Assert.IsInstanceOfType<InvalidOperationException>(logger.Entries[1].Exception);
+        Assert.AreEqual(VirtualMachineEventId.Break, logger.Entries[2].EventId.Id);
+        Assert.AreEqual("break", logger.Entries[2].Message);
     }
 }
