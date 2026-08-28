@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.VM;
 using Neo.VM.Types;
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Array = Neo.VM.Types.Array;
 using Buffer = Neo.VM.Types.Buffer;
@@ -257,5 +258,170 @@ public class UT_SafeSpan
         Assert.AreEqual(0, pointer.GetSafeSpan().Length);
         var interop = new InteropInterface(new object());
         Assert.AreEqual(0, interop.GetSafeSpan().Length);
+    }
+
+    [TestMethod]
+    public void Array_ContainsEveryVmType()
+    {
+        var items = AllVmTypes();
+        var array = new Array(items);
+        var expected = ConcatSkippingNull(items);
+        CollectionAssert.AreEqual(expected, array.GetSafeSpan().ToArray());
+        CollectionAssert.AreEqual(expected, array.AsSpan().ToArray());
+        CollectionAssert.AreEqual(expected, array.GetSpan(CompoundSpanLimits).ToArray());
+        Assert.ThrowsExactly<InvalidCastException>(() => array.GetSpan());
+    }
+
+    [TestMethod]
+    public void Struct_ContainsEveryVmType()
+    {
+        var items = AllVmTypes();
+        var s = new Struct(items);
+        var expected = ConcatSkippingNull(items);
+        CollectionAssert.AreEqual(expected, s.GetSafeSpan().ToArray());
+        CollectionAssert.AreEqual(expected, s.AsSpan().ToArray());
+        CollectionAssert.AreEqual(expected, s.GetSpan(CompoundSpanLimits).ToArray());
+        Assert.ThrowsExactly<InvalidCastException>(() => s.GetSpan());
+    }
+
+    [TestMethod]
+    public void Map_ContainsEveryVmTypeAsValue()
+    {
+        var items = AllVmTypes();
+        var map = new Map();
+        for (var i = 0; i < items.Length; i++)
+            map[i + 1] = items[i];
+
+        var expected = ConcatMap(map);
+        CollectionAssert.AreEqual(expected, map.GetSafeSpan().ToArray());
+        CollectionAssert.AreEqual(expected, map.AsSpan().ToArray());
+        CollectionAssert.AreEqual(expected, map.GetSpan(CompoundSpanLimits).ToArray());
+        Assert.ThrowsExactly<InvalidCastException>(() => map.GetSpan());
+    }
+
+    [TestMethod]
+    public void Array_EachVmType_Alone()
+    {
+        foreach (var item in AllVmTypes())
+        {
+            var array = new Array { item };
+            var expected = item is Null ? [] : item.GetSafeSpan().ToArray();
+            CollectionAssert.AreEqual(expected, array.GetSafeSpan().ToArray(), $"Array[{item.GetType().Name}]");
+            CollectionAssert.AreEqual(expected, array.GetSpan(CompoundSpanLimits).ToArray(), $"Array.GetSpan[{item.GetType().Name}]");
+        }
+    }
+
+    [TestMethod]
+    public void Struct_EachVmType_Alone()
+    {
+        foreach (var item in AllVmTypes())
+        {
+            var s = new Struct { item };
+            var expected = item is Null ? [] : item.GetSafeSpan().ToArray();
+            CollectionAssert.AreEqual(expected, s.GetSafeSpan().ToArray(), $"Struct[{item.GetType().Name}]");
+            CollectionAssert.AreEqual(expected, s.GetSpan(CompoundSpanLimits).ToArray(), $"Struct.GetSpan[{item.GetType().Name}]");
+        }
+    }
+
+    [TestMethod]
+    public void Map_EachVmType_Alone()
+    {
+        var key = 1;
+        foreach (var item in AllVmTypes())
+        {
+            var map = new Map { [key] = item };
+            var expected = ConcatMap(map);
+            CollectionAssert.AreEqual(expected, map.GetSafeSpan().ToArray(), $"Map[{item.GetType().Name}]");
+            CollectionAssert.AreEqual(expected, map.GetSpan(CompoundSpanLimits).ToArray(), $"Map.GetSpan[{item.GetType().Name}]");
+        }
+    }
+
+    [TestMethod]
+    public void Map_PrimitiveKeys_IntegerBooleanByteString()
+    {
+        byte[] payload = [9, 8];
+        var map = new Map
+        {
+            [1] = payload,
+            [true] = 2,
+            [false] = 3,
+            [(ByteString)payload] = true
+        };
+
+        var expected = ConcatMap(map);
+        CollectionAssert.AreEqual(expected, map.GetSafeSpan().ToArray());
+        CollectionAssert.AreEqual(expected, map.GetSpan(CompoundSpanLimits).ToArray());
+    }
+
+    [TestMethod]
+    public void NestedCompounds_ContainEveryVmType()
+    {
+        var items = AllVmTypes();
+        var innerArray = new Array(items);
+        var innerStruct = new Struct(items);
+        var innerMap = new Map();
+        for (var i = 0; i < items.Length; i++)
+            innerMap[i + 1] = items[i];
+
+        StackItem[] nested = [innerArray, innerStruct, innerMap];
+        var array = new Array(nested);
+        CollectionAssert.AreEqual(ConcatSkippingNull(nested), array.GetSafeSpan().ToArray());
+
+        var s = new Struct(nested);
+        CollectionAssert.AreEqual(ConcatSkippingNull(nested), s.GetSafeSpan().ToArray());
+
+        var map = new Map
+        {
+            [1] = innerArray,
+            [2] = innerStruct,
+            [3] = innerMap
+        };
+        CollectionAssert.AreEqual(ConcatMap(map), map.GetSafeSpan().ToArray());
+    }
+
+    private static ExecutionEngineLimits CompoundSpanLimits =>
+        ExecutionEngineLimits.Default with { Features = VmFeatureSets.Current | VmFeatures.CompoundSpan };
+
+    private static StackItem[] AllVmTypes()
+    {
+        byte[] data = [4, 5];
+        return
+        [
+            StackItem.Null,
+            true,
+            false,
+            (Integer)0,
+            (Integer)1,
+            (ByteString)data,
+            new Buffer(data),
+            new Array { 9 },
+            new Struct { 8 },
+            new Map { [7] = 6 },
+            new Pointer(Script.Empty, 0),
+            new InteropInterface(new object())
+        ];
+    }
+
+    private static byte[] ConcatSkippingNull(IEnumerable<StackItem> items)
+    {
+        var result = new List<byte>();
+        foreach (var item in items)
+        {
+            if (item is Null)
+                continue;
+            result.AddRange(item.GetSafeSpan().ToArray());
+        }
+        return result.ToArray();
+    }
+
+    private static byte[] ConcatMap(Map map)
+    {
+        var result = new List<byte>();
+        foreach (var (key, value) in map)
+        {
+            result.AddRange(key.GetSafeSpan().ToArray());
+            result.AddRange(value.GetSafeSpan().ToArray());
+        }
+        return result.ToArray();
     }
 }
