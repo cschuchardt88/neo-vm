@@ -10,6 +10,7 @@
 // modifications are permitted.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -78,6 +79,13 @@ public class Integer : PrimitiveType
     {
         return value;
     }
+
+    /// <summary>
+    /// Rapid-Loop <c>VMInteger.ComputeSpan</c>: little-endian two's complement,
+    /// including a single zero byte for <c>0</c>.
+    /// </summary>
+    protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
+        => value.ToByteArray();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Integer(sbyte value)

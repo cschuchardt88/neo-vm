@@ -226,6 +226,9 @@ public abstract partial class StackItem : IEquatable<StackItem>
             limits.AssertMaxItemSize(span.Length);
             return span;
         }
+        // Opcode path: Integer 0 stays empty (Memory), not ToByteArray() [0].
+        if (this is PrimitiveType primitive)
+            return primitive.Memory.Span;
         return GetSafeSpan();
     }
 

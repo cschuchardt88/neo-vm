@@ -10,6 +10,7 @@
 // modifications are permitted.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -63,6 +64,12 @@ public class Boolean : PrimitiveType
     {
         return value ? BigInteger.One : BigInteger.Zero;
     }
+
+    /// <summary>
+    /// Rapid-Loop <c>VMBoolean.ComputeSpan</c>: <c>[1]</c> or <c>[0]</c>.
+    /// </summary>
+    protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
+        => value ? [1] : [0];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Boolean(bool value)

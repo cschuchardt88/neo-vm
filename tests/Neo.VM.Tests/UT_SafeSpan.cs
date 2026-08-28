@@ -240,7 +240,7 @@ public class UT_SafeSpan
         Map emptyMap = [];
         Assert.AreEqual(0, emptyArray.GetSafeSpan().Length);
         Assert.AreEqual(0, emptyMap.GetSafeSpan().Length);
-        Assert.AreEqual(0, ((StackItem)0).GetSafeSpan().Length);
+        CollectionAssert.AreEqual(new byte[] { 0 }, ((StackItem)0).GetSafeSpan().ToArray());
         CollectionAssert.AreEqual(new byte[] { 0 }, ((StackItem)false).GetSafeSpan().ToArray());
 
         var nested = new Array { new Array { 1, 2 }, 3 };
@@ -258,12 +258,17 @@ public class UT_SafeSpan
     }
 
     [TestMethod]
-    public void PointerAndInterop_GetSafeSpan_IsEmpty()
+    public void PointerAndInterop_ComputeSpan_MatchPlatform()
     {
         var pointer = new Pointer(Script.Empty, 0);
         Assert.AreEqual(0, pointer.GetSafeSpan().Length);
+
+        byte[] script = [0x01, 0x02];
+        var pointed = new Pointer(new Script(script), 0);
+        CollectionAssert.AreEqual(script, pointed.GetSafeSpan().ToArray());
+
         var interop = new InteropInterface(new object());
-        Assert.AreEqual(0, interop.GetSafeSpan().Length);
+        CollectionAssert.AreEqual(System.Text.Encoding.UTF8.GetBytes(nameof(Object)), interop.GetSafeSpan().ToArray());
     }
 
     [TestMethod]
