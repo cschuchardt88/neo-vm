@@ -342,10 +342,7 @@ partial class JumpTable
             // For arrays, check if the index is within bounds and push the result onto the stack.
             case VMArray array:
                 {
-                    var index = key.GetInteger();
-                    if (index < 0 || index >= engine.Limits.MaxItemSize)
-                        throw new InvalidOperationException($"The index {index} is invalid for OpCode {instruction.OpCode}.");
-                    engine.Push(index < array.Count);
+                    engine.Push(HasKeyIndex(engine, instruction, key, array.Count));
                     break;
                 }
             // For maps, check if the key exists and push the result onto the stack.
@@ -357,25 +354,35 @@ partial class JumpTable
             // For buffers, check if the index is within bounds and push the result onto the stack.
             case Buffer buffer:
                 {
-                    var index = key.GetInteger();
-                    if (index < 0 || index >= engine.Limits.MaxItemSize)
-                        throw new InvalidOperationException($"The index {index} is invalid for OpCode {instruction.OpCode}.");
-                    engine.Push(index < buffer.Size);
+                    engine.Push(HasKeyIndex(engine, instruction, key, buffer.Size));
                     break;
                 }
             // For byte strings, check if the index is within bounds and push the result onto the stack.
             case ByteString array:
                 {
-                    var index = key.GetInteger();
-                    if (index < 0 || index >= engine.Limits.MaxItemSize)
-                        throw new InvalidOperationException($"The index {index} is invalid for OpCode {instruction.OpCode}.");
-                    engine.Push(index < array.Size);
+                    engine.Push(HasKeyIndex(engine, instruction, key, array.Size));
                     break;
                 }
             default:
                 throw new InvalidOperationException($"Invalid type for {instruction.OpCode}: {x.Type}");
         }
         runStats.CollectRefDelta(r - engine.ReferenceCounter.Count);
+    }
+
+    private static bool HasKeyIndex(ExecutionEngine engine, Instruction instruction, PrimitiveType key, int count)
+    {
+        if (!engine.Limits.Has(VmFeatures.StrictContainerAccess))
+        {
+            var narrow = (int)key.GetInteger();
+            if (narrow < 0)
+                throw new InvalidOperationException($"The negative index {narrow} is invalid for OpCode {instruction.OpCode}.");
+            return narrow < count;
+        }
+
+        var index = key.GetInteger();
+        if (index < 0 || index >= engine.Limits.MaxItemSize)
+            throw new InvalidOperationException($"The index {index} is invalid for OpCode {instruction.OpCode}.");
+        return index < count;
     }
 
     /// <summary>
