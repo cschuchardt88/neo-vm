@@ -57,6 +57,17 @@ public class UT_VmFeatures
     }
 
     [TestMethod]
+    public void HasKey_NegativeIndex_Faults()
+    {
+        using var engine = Engine(VmFeatures.None);
+        using var sb = new ScriptBuilder();
+        sb.Emit(OpCode.NEWARRAY0);
+        sb.EmitPush(BigInteger.MinusOne);
+        sb.Emit(OpCode.HASKEY);
+        Assert.AreEqual(VMState.FAULT, Run(engine, sb));
+    }
+
+    [TestMethod]
     public void HasKey_LargeIndex_WithoutStrictContainerAccess_ReturnsFalse()
     {
         using var engine = Engine(VmFeatures.None);

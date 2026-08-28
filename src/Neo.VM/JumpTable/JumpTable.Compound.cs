@@ -371,16 +371,10 @@ partial class JumpTable
 
     private static bool HasKeyIndex(ExecutionEngine engine, Instruction instruction, PrimitiveType key, int count)
     {
-        if (!engine.Limits.Has(VmFeatures.StrictContainerAccess))
-        {
-            var narrow = (int)key.GetInteger();
-            if (narrow < 0)
-                throw new InvalidOperationException($"The negative index {narrow} is invalid for OpCode {instruction.OpCode}.");
-            return narrow < count;
-        }
-
         var index = key.GetInteger();
-        if (index < 0 || index >= engine.Limits.MaxItemSize)
+        if (index.Sign < 0)
+            throw new InvalidOperationException($"The negative index {index} is invalid for OpCode {instruction.OpCode}.");
+        if (engine.Limits.Has(VmFeatures.StrictContainerAccess) && index >= engine.Limits.MaxItemSize)
             throw new InvalidOperationException($"The index {index} is invalid for OpCode {instruction.OpCode}.");
         return index < count;
     }
@@ -508,7 +502,7 @@ partial class JumpTable
             case VMArray array:
                 {
                     var index = key.GetInteger();
-                    if (index < 0 || index >= array.Count)
+                    if (index.Sign < 0 || index >= array.Count)
                     {
                         var r3 = engine.ReferenceCounter.Count;
                         ExecuteThrow(engine, $"The index of {nameof(VMArray)} is out of range, {index}/[0, {array.Count}).", out int refsDelta);
@@ -534,7 +528,7 @@ partial class JumpTable
                 {
                     var byteArray = primitive.GetSpan();
                     var index = key.GetInteger();
-                    if (index < 0 || index >= byteArray.Length)
+                    if (index.Sign < 0 || index >= byteArray.Length)
                     {
                         var r3 = engine.ReferenceCounter.Count;
                         ExecuteThrow(engine, $"The index of {nameof(PrimitiveType)} is out of range, {index}/[0, {byteArray.Length}).", out int refsDelta);
@@ -547,7 +541,7 @@ partial class JumpTable
             case Buffer buffer:
                 {
                     var index = key.GetInteger();
-                    if (index < 0 || index >= buffer.Size)
+                    if (index.Sign < 0 || index >= buffer.Size)
                     {
                         var r3 = engine.ReferenceCounter.Count;
                         ExecuteThrow(engine, $"The index of {nameof(Buffer)} is out of range, {index}/[0, {buffer.Size}).", out int refsDelta);
@@ -617,7 +611,7 @@ partial class JumpTable
             case VMArray array:
                 {
                     var index = key.GetInteger();
-                    if (index < 0 || index >= array.Count)
+                    if (index.Sign < 0 || index >= array.Count)
                     {
                         engine.ReferenceCounter.RemoveStackReference(value);
                         var r4 = engine.ReferenceCounter.Count;
@@ -656,7 +650,7 @@ partial class JumpTable
                 {
                     engine.ReferenceCounter.RemoveStackReference(value);
                     var index = key.GetInteger();
-                    if (index < 0 || index >= buffer.Size)
+                    if (index.Sign < 0 || index >= buffer.Size)
                     {
                         var r4 = engine.ReferenceCounter.Count;
                         ExecuteThrow(engine, $"The index of {nameof(Buffer)} is out of range, {index}/[0, {buffer.Size}).", out int refsDelta);
@@ -730,7 +724,7 @@ partial class JumpTable
         {
             case VMArray array:
                 var index = key.GetInteger();
-                if (index < 0 || index >= array.Count)
+                if (index.Sign < 0 || index >= array.Count)
                     throw new InvalidOperationException($"The index of {nameof(VMArray)} is out of range, {index}/[0, {array.Count}).");
 
                 var i = (int)index;
