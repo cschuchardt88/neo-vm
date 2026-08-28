@@ -230,13 +230,13 @@ public abstract partial class StackItem : IEquatable<StackItem>
     }
 
     /// <summary>
-    /// Cycle-safe byte representation (Rapid-Loop neo-platform
-    /// <c>AsSpan</c> / <c>GetSafeSpan</c>).
+    /// Rapid-Loop AsSpan: same as parameterless GetSpan.
     /// </summary>
-    public ReadOnlySpan<byte> AsSpan() => GetSafeSpan();
+    public ReadOnlySpan<byte> AsSpan() => GetSpan();
 
     /// <summary>
-    /// Cycle-safe byte representation. Same as <see cref="AsSpan"/>.
+    /// Cycle-safe byte representation. Compounds always succeed here;
+    /// <see cref="AsSpan"/> and parameterless GetSpan follow opcode limits.
     /// </summary>
     public ReadOnlySpan<byte> GetSafeSpan()
     {
@@ -381,9 +381,7 @@ public abstract partial class StackItem : IEquatable<StackItem>
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator BigInteger(StackItem value)
-        => value is Integer integer
-            ? (BigInteger)integer
-            : Integer.ToUnsignedBigInteger(value.AsSpan());
+        => value.GetInteger();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator bool(StackItem value) => value.GetBoolean();

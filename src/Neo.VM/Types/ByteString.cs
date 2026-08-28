@@ -10,6 +10,7 @@
 // modifications are permitted.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -90,6 +91,12 @@ public class ByteString : PrimitiveType
         if (Size > Integer.MaxSize) throw new InvalidCastException($"Can not convert {nameof(ByteString)} to an integer, MaxSize of {nameof(Integer)} is exceeded: {Size}/{Integer.MaxSize}.");
         return new BigInteger(GetSpan());
     }
+
+    /// <summary>
+    /// Rapid-Loop <c>VMByteArray.ComputeSpan</c>: the immutable payload.
+    /// </summary>
+    protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
+        => Memory.Span;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator ReadOnlyMemory<byte>(ByteString value)

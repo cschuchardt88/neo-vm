@@ -122,5 +122,5 @@ public class Buffer : StackItem
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator BigInteger(Buffer value)
-        => Integer.ToUnsignedBigInteger(value.GetSpan());
+        => new(value.GetSpan());
 }
