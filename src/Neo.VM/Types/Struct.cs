@@ -76,15 +76,14 @@ public class Struct : Array
     }
 
     /// <summary>
-    /// Host/IEquatable compare matches neo-platform <c>VMArray.Equals</c>
-    /// (item-by-item). Opcode compare stays
-    /// <see cref="Equals(StackItem, ExecutionEngineLimits)"/>.
+    /// Host compare without limits always throws (cycles need
+    /// <see cref="ExecutionEngineLimits.MaxStackSize"/>). Use
+    /// <see cref="Equals(StackItem, ExecutionEngineLimits)"/> with
+    /// <see cref="VmFeatures.IEquatableContent"/> for content compare.
     /// </summary>
     public override bool Equals(StackItem? other)
     {
-        if (!ExecutionEngineLimits.Default.Has(VmFeatures.IEquatableContent))
-            throw new NotSupportedException();
-        return base.Equals(other);
+        throw new NotSupportedException();
     }
 
     /// <summary>

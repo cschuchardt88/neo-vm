@@ -92,12 +92,7 @@ public class Map : CompoundType, IReadOnlyDictionary<PrimitiveType, StackItem>
     }
 
     public override bool Equals(StackItem? other)
-    {
-        if (ReferenceEquals(this, other)) return true;
-        if (!ExecutionEngineLimits.Default.Has(VmFeatures.IEquatableContent))
-            return false;
-        return EqualsContent(other);
-    }
+        => Equals(other, ExecutionEngineLimits.Default);
 
     /// <summary>
     /// Without <see cref="VmFeatures.IEquatableContent"/> this is reference

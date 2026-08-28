@@ -73,12 +73,7 @@ public class Array : CompoundType, IReadOnlyList<StackItem>
     }
 
     public override bool Equals(StackItem? other)
-    {
-        if (ReferenceEquals(this, other)) return true;
-        if (!ExecutionEngineLimits.Default.Has(VmFeatures.IEquatableContent))
-            return false;
-        return EqualsContent(other, ExecutionEngineLimits.Default with { Features = VmFeatures.IEquatableContent });
-    }
+        => Equals(other, ExecutionEngineLimits.Default);
 
     /// <summary>
     /// Without <see cref="VmFeatures.IEquatableContent"/> this is reference

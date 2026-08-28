@@ -496,4 +496,158 @@ public class UT_StackItem
         Assert.AreEqual(VMState.HALT, engine.Execute());
         Assert.IsFalse(engine.ResultStack.Pop().GetBoolean());
     }
+
+    [TestMethod]
+    public void EqualOpcode_ArraysContentEqual_WithIEquatableContent()
+    {
+        var limits = ExecutionEngineLimits.Default with { Features = VmFeatureSets.Current | VmFeatures.IEquatableContent };
+        using var engine = new ExecutionEngine(null, limits);
+        using var sb = new ScriptBuilder();
+        sb.EmitPush(1);
+        sb.EmitPush(1);
+        sb.Emit(OpCode.PACK);
+        sb.EmitPush(1);
+        sb.EmitPush(1);
+        sb.Emit(OpCode.PACK);
+        sb.Emit(OpCode.EQUAL);
+        engine.LoadScript(sb.ToArray());
+        Assert.AreEqual(VMState.HALT, engine.Execute());
+        Assert.IsTrue(engine.ResultStack.Pop().GetBoolean());
+    }
+
+    [TestMethod]
+    public void NotEqualOpcode_ArraysContentEqual_WithIEquatableContent()
+    {
+        var limits = ExecutionEngineLimits.Default with { Features = VmFeatureSets.Current | VmFeatures.IEquatableContent };
+        using var engine = new ExecutionEngine(null, limits);
+        using var sb = new ScriptBuilder();
+        sb.EmitPush(1);
+        sb.EmitPush(1);
+        sb.Emit(OpCode.PACK);
+        sb.EmitPush(1);
+        sb.EmitPush(1);
+        sb.Emit(OpCode.PACK);
+        sb.Emit(OpCode.NOTEQUAL);
+        engine.LoadScript(sb.ToArray());
+        Assert.AreEqual(VMState.HALT, engine.Execute());
+        Assert.IsFalse(engine.ResultStack.Pop().GetBoolean());
+    }
+
+    [TestMethod]
+    public void TestIEquatable_NestedArrayBranches()
+    {
+        Assert.IsFalse(new Array { 1 }.Equals((StackItem)1, ContentEquals));
+        byte[] oneByte = [1];
+        Assert.IsFalse(new Array { 1 }.Equals(new Buffer(oneByte), ContentEquals));
+        Assert.IsFalse(new Array { 1 }.Equals(new Map { [0] = 1 }, ContentEquals));
+
+        var nestedMatch = new Array { new Array { 1, 2 } };
+        var nestedSame = new Array { new Array { 1, 2 } };
+        var nestedMismatch = new Array { new Array { 1, 3 } };
+        var nestedNotArray = new Array { 1 };
+        Assert.IsTrue(nestedMatch.Equals(nestedSame, ContentEquals));
+        Assert.IsFalse(nestedMatch.Equals(nestedMismatch, ContentEquals));
+        Assert.IsFalse(nestedMatch.Equals(nestedNotArray, ContentEquals));
+
+        var shared = new Array { 1 };
+        var diamond = new Array { shared, shared };
+        var diamond2 = new Array { shared, shared };
+        Assert.IsTrue(diamond.Equals(diamond2, ContentEquals));
+
+        var a = new Array();
+        a.Add(a);
+        a.Add(a);
+        var b = new Array();
+        var c = new Array();
+        b.Add(b);
+        b.Add(c);
+        Assert.IsFalse(a.Equals(b, ContentEquals));
+
+        byte[] one = [1];
+        Assert.IsTrue(new Array { new Buffer(one) }.Equals(new Array { new Buffer(one) }, ContentEquals));
+        Assert.IsTrue(new Array { new Map { [0] = 1 } }.Equals(new Array { new Map { [0] = 1 } }, ContentEquals));
+    }
+
+    [TestMethod]
+    public void TestIEquatable_StructBranches()
+    {
+        Assert.IsTrue(new Struct { (ByteString)"ab" }.Equals(new Struct { (ByteString)"ab" }, ContentEquals));
+        Assert.IsFalse(new Struct { (ByteString)"ab" }.Equals(new Struct { (ByteString)"cd" }, ContentEquals));
+        Assert.IsFalse(new Struct { (ByteString)"a" }.Equals(new Struct { 1 }, ContentEquals));
+
+        var inner = new Struct { 1 };
+        Assert.IsTrue(new Struct { inner }.Equals(new Struct { inner }, ContentEquals));
+        Assert.IsFalse(new Struct { new Struct { 1 } }.Equals(new Struct { new Array { 1 } }, ContentEquals));
+        Assert.IsFalse(new Struct { 1 }.Equals(new Struct { 1, 2 }, ContentEquals));
+
+        var nestedArray = new Struct { new Array { 1, 2 } };
+        Assert.IsTrue(nestedArray.Equals(new Struct { new Array { 1, 2 } }, ContentEquals));
+        Assert.IsFalse(nestedArray.Equals(new Struct { new Array { 1, 3 } }, ContentEquals));
+        Assert.IsFalse(nestedArray.Equals(new Struct { 1 }, ContentEquals));
+
+        var left = new Struct();
+        left.Add(left);
+        left.Add(left);
+        var right = new Struct();
+        right.Add(right);
+        right.Add(new Struct());
+        Assert.IsFalse(left.Equals(right, ContentEquals));
+
+        var tiny = ContentEquals with { MaxComparableSize = 0 };
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            new Struct { 1 }.Equals(new Struct { 1 }, tiny));
+
+        var shallow = ContentEquals with { MaxStackSize = 1 };
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            new Struct { 1 }.Equals(new Struct { 1 }, shallow));
+
+        var tooBig = ContentEquals with { MaxComparableSize = 1 };
+        ByteString big = new byte[] { 1, 2, 3 };
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            new Struct { big }.Equals(new Struct { big }, tooBig));
+
+        ByteString small = new byte[] { 1 };
+        var otherTooBig = ContentEquals with { MaxComparableSize = 2 };
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            small.Equals(big, otherTooBig));
+        Assert.IsFalse(small.Equals((StackItem)1, ContentEquals));
+    }
+
+    [TestMethod]
+    public void TestIEquatable_MapAndBufferSelf()
+    {
+        var map = new Map { [0] = 1 };
+        Assert.IsTrue(map.Equals(map));
+        Assert.IsTrue(map.Equals(map, ContentEquals));
+        Assert.IsTrue(new Map { [0] = new Array { 1 } }.Equals(new Map { [0] = new Array { 1 } }, ContentEquals));
+        Assert.IsFalse(new Map { [0] = new Array { 1 } }.Equals(new Map { [0] = new Array { 2 } }, ContentEquals));
+
+        byte[] one = [1];
+        var buffer = new Buffer(one);
+        Assert.IsTrue(buffer.Equals(buffer));
+        Assert.IsTrue(buffer.Equals(buffer, ContentEquals));
+        Assert.IsFalse(buffer.Equals((StackItem)1, ContentEquals));
+    }
+
+    [TestMethod]
+    public void HasCircularReference_MapNullAndPrimitive()
+    {
+        var map = new Map();
+        map[1] = map;
+        Assert.IsTrue(map.HasCircularReference());
+        Assert.IsFalse(new Map { [1] = 2 }.HasCircularReference());
+
+        var withNull = new Array { null };
+        Assert.IsFalse(withNull.HasCircularReference());
+
+        var outer = new Array();
+        var inner = new Array();
+        outer.Add(inner);
+        inner.Add(outer);
+        Assert.IsTrue(outer.HasCircularReference());
+
+        StackItem number = 1;
+        Assert.IsFalse(number.HasCircularReference());
+        Assert.IsFalse(StackItem.Null.HasCircularReference());
+    }
 }
