@@ -12,7 +12,11 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.VM;
 using Neo.VM.Types;
+using System;
 using System.Numerics;
+using Array = Neo.VM.Types.Array;
+using Buffer = Neo.VM.Types.Buffer;
+using Boolean = Neo.VM.Types.Boolean;
 
 namespace Neo.Test;
 
@@ -33,7 +37,7 @@ public class UT_StackItem
         itemB[1] = itemB;
         itemC[1] = itemC;
 
-        Assert.ThrowsExactly<System.InvalidOperationException>(() => itemA.Equals(itemB, ExecutionEngineLimits.Default));
+        Assert.ThrowsExactly<InvalidOperationException>(() => itemA.Equals(itemB, ExecutionEngineLimits.Default));
         Assert.IsTrue(itemA.Equals(itemB, ContentEquals));
         Assert.IsFalse(itemA.Equals(itemC, ContentEquals));
     }
@@ -52,9 +56,9 @@ public class UT_StackItem
         itemB = new Buffer(1);
         itemC = new Buffer(2);
 
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemA.GetHashCode());
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemB.GetHashCode());
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemC.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemA.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemB.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemC.GetHashCode());
 
         itemA = new byte[] { 1, 2, 3 };
         itemB = new byte[] { 1, 2, 3 };
@@ -86,25 +90,25 @@ public class UT_StackItem
         itemB = new Array { true, false, 0 };
         itemC = new Array { true, false, 1 };
 
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemA.GetHashCode());
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemB.GetHashCode());
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemC.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemA.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemB.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemC.GetHashCode());
 
         itemA = new Struct { true, false, 0 };
         itemB = new Struct { true, false, 0 };
         itemC = new Struct { true, false, 1 };
 
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemA.GetHashCode());
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemB.GetHashCode());
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemC.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemA.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemB.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemC.GetHashCode());
 
         itemA = new Map { [true] = false, [0] = 1 };
         itemB = new Map { [true] = false, [0] = 1 };
         itemC = new Map { [true] = false, [0] = 2 };
 
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemA.GetHashCode());
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemB.GetHashCode());
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemC.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemA.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemB.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemC.GetHashCode());
 
         // Test CompoundType GetHashCode for subitems
         var junk = new Array { true, false, 0 };
@@ -112,9 +116,9 @@ public class UT_StackItem
         itemB = new Map { [true] = junk, [0] = junk };
         itemC = new Map { [true] = junk, [0] = 2 };
 
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemA.GetHashCode());
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemB.GetHashCode());
-        Assert.ThrowsExactly<System.NotSupportedException>(() => itemC.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemA.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemB.GetHashCode());
+        Assert.ThrowsExactly<NotSupportedException>(() => itemC.GetHashCode());
 
         itemA = new InteropInterface(123);
         itemB = new InteropInterface(123);
@@ -123,7 +127,8 @@ public class UT_StackItem
         Assert.AreEqual(itemB.GetHashCode(), itemA.GetHashCode());
         Assert.AreNotEqual(itemC.GetHashCode(), itemA.GetHashCode());
 
-        var script = new Script(System.Array.Empty<byte>());
+        byte[] emptyScript = [];
+        var script = new Script(emptyScript);
         itemA = new Pointer(script, 123);
         itemB = new Pointer(script, 123);
         itemC = new Pointer(script, 1234);
@@ -135,7 +140,8 @@ public class UT_StackItem
     [TestMethod]
     public void TestNull()
     {
-        StackItem nullItem = System.Array.Empty<byte>();
+        byte[] empty = [];
+        StackItem nullItem = empty;
         Assert.AreNotEqual(StackItem.Null, nullItem);
 
         nullItem = new Null();
@@ -279,10 +285,10 @@ public class UT_StackItem
         Assert.IsNull(removed);
 
         var bigKey = new ByteString(new byte[65]);
-        Assert.ThrowsExactly<System.ArgumentException>(() => map.Remove(bigKey, out _));
+        Assert.ThrowsExactly<ArgumentException>(() => map.Remove(bigKey, out _));
 
         var readonlyMap = (Map)map.DeepCopy(true);
-        Assert.ThrowsExactly<System.InvalidOperationException>(() => readonlyMap.Remove(key, out _));
+        Assert.ThrowsExactly<InvalidOperationException>(() => readonlyMap.Remove(key, out _));
     }
 
     [TestMethod]
@@ -355,7 +361,7 @@ public class UT_StackItem
 
         Assert.IsFalse(expectedBuffer.Equals(actualBufferOne));
         Assert.IsFalse(expectedMap.Equals(actualMapOne));
-        Assert.ThrowsExactly<System.NotSupportedException>(() => expectedStruct.Equals(actualStructOne));
+        Assert.ThrowsExactly<NotSupportedException>(() => expectedStruct.Equals(actualStructOne));
         Assert.IsFalse(expectedArray.Equals(actualArrayOne));
 
         Assert.AreNotEqual(expectedBoolean, actualBooleanTwo);
@@ -402,7 +408,7 @@ public class UT_StackItem
         Assert.IsFalse(s.Equals(new Struct { 2 }, ContentEquals));
         Assert.IsFalse(s.Equals(new Array { 1 }, ContentEquals));
         Assert.IsTrue(s.Equals(s, ExecutionEngineLimits.Default));
-        Assert.ThrowsExactly<System.NotSupportedException>(() => s.Equals(new Struct { 1 }));
+        Assert.ThrowsExactly<NotSupportedException>(() => s.Equals(new Struct { 1 }));
     }
 
     [TestMethod]
@@ -463,7 +469,7 @@ public class UT_StackItem
         s1.Add(s1);
         var s2 = new Struct();
         s2.Add(s2);
-        Assert.ThrowsExactly<System.NotSupportedException>(() => s1.Equals(s2));
+        Assert.ThrowsExactly<NotSupportedException>(() => s1.Equals(s2));
         Assert.IsTrue(s1.Equals(s2, ContentEquals));
 
         var t1 = new Struct { 1 };
@@ -471,7 +477,7 @@ public class UT_StackItem
         var t2 = new Struct { 2 };
         t2.Add(t2);
         Assert.IsFalse(t1.Equals(t2, ContentEquals));
-        Assert.ThrowsExactly<System.InvalidOperationException>(() => t1.Equals(t2, ExecutionEngineLimits.Default));
+        Assert.ThrowsExactly<InvalidOperationException>(() => t1.Equals(t2, ExecutionEngineLimits.Default));
     }
 
     [TestMethod]
