@@ -182,6 +182,31 @@ public class UT_SafeSpan
     }
 
     [TestMethod]
+    public void ExplicitBigInteger_IsUnsigned32Bytes()
+    {
+        Integer n = 5;
+        Assert.AreEqual(new BigInteger(5), (BigInteger)n);
+        Assert.ThrowsExactly<InvalidCastException>(() => _ = (BigInteger)(Integer)(-1));
+
+        var max = new byte[32];
+        max.AsSpan().Fill(0xFF);
+        Buffer maxBuffer = max;
+        Assert.AreEqual(BigInteger.Pow(2, 256) - 1, (BigInteger)maxBuffer);
+
+        var tooBig = new byte[33];
+        tooBig.AsSpan().Fill(0xFF);
+        Buffer over = tooBig;
+        Assert.ThrowsExactly<InvalidCastException>(() => _ = (BigInteger)over);
+
+        byte[] highBit = [0x80];
+        Buffer hb = highBit;
+        Assert.AreEqual(new BigInteger(128), (BigInteger)hb);
+
+        StackItem fromBytes = highBit;
+        Assert.AreEqual(new BigInteger(128), (BigInteger)fromBytes);
+    }
+
+    [TestMethod]
     public void EmptyAndNested_GetSafeSpan()
     {
         Array emptyArray = [];

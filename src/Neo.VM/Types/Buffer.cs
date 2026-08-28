@@ -124,9 +124,5 @@ public class Buffer : StackItem
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator BigInteger(Buffer value)
-    {
-        var span = value.GetSpan();
-        var length = Math.Min(span.Length, Integer.MaxSize);
-        return new BigInteger(span[..length]);
-    }
+        => Integer.ToUnsignedBigInteger(value.GetSpan());
 }

@@ -347,7 +347,10 @@ public abstract partial class StackItem : IEquatable<StackItem>
     public static explicit operator ulong(StackItem value) => (ulong)value.GetInteger();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static explicit operator BigInteger(StackItem value) => value.GetInteger();
+    public static explicit operator BigInteger(StackItem value)
+        => value is Integer integer
+            ? (BigInteger)integer
+            : Integer.ToUnsignedBigInteger(value.AsSpan());
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator bool(StackItem value) => value.GetBoolean();

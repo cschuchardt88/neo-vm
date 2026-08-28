@@ -74,7 +74,8 @@ public class Boolean : PrimitiveType
     public static explicit operator bool(Boolean value) => value.GetBoolean();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static explicit operator BigInteger(Boolean value) => value.GetInteger();
+    public static explicit operator BigInteger(Boolean value)
+        => Integer.ToUnsignedBigInteger(value.GetInteger());
 
     public override string ToString()
     {
