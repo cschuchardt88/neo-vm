@@ -212,6 +212,41 @@ public abstract partial class StackItem : IEquatable<StackItem>
     }
 
     /// <summary>
+    /// Child items for cycle detection. Compounds override this.
+    /// </summary>
+    internal virtual IEnumerable<StackItem> GetChildren() => [];
+
+    /// <summary>
+    /// Whether this object graph contains a circular reference
+    /// (Rapid-Loop neo-platform <c>HasCircularReference</c>).
+    /// </summary>
+    public bool HasCircularReference()
+    {
+        var visited = new HashSet<StackItem>(ReferenceEqualityComparer.Instance);
+        return DetectCycle(this, visited);
+    }
+
+    /// <summary>
+    /// DFS with a reference-equality visited set. Re-visiting a node on the
+    /// current path is a cycle; the node is removed on the way out so
+    /// diamonds are not treated as cycles.
+    /// </summary>
+    private static bool DetectCycle(StackItem? current, HashSet<StackItem> visited)
+    {
+        if (current is null)
+            return false;
+        if (!visited.Add(current))
+            return true;
+        foreach (var child in current.GetChildren())
+        {
+            if (DetectCycle(child, visited))
+                return true;
+        }
+        visited.Remove(current);
+        return false;
+    }
+
+    /// <summary>
     /// Get the <see cref="string"/> value represented by the VM object.
     /// </summary>
     /// <returns>The <see cref="string"/> value represented by the VM object.</returns>

@@ -394,6 +394,28 @@ public class UT_StackItem
     }
 
     [TestMethod]
+    public void HasCircularReference_DetectsSelfReference()
+    {
+        var a = new Array();
+        a.Add(a);
+        Assert.IsTrue(a.HasCircularReference());
+        Assert.IsFalse(new Array { 1, 2 }.HasCircularReference());
+
+        var s = new Struct();
+        s.Add(s);
+        Assert.IsTrue(s.HasCircularReference());
+        Assert.IsFalse(new Struct { 1, 2 }.HasCircularReference());
+    }
+
+    [TestMethod]
+    public void HasCircularReference_DiamondIsNotACycle()
+    {
+        var child = new Array { 1 };
+        var parent = new Array { child, child };
+        Assert.IsFalse(parent.HasCircularReference());
+    }
+
+    [TestMethod]
     public void TestIEquatable_CircularArray()
     {
         var a = new Array();

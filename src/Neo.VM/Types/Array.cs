@@ -79,7 +79,23 @@ public class Array : CompoundType, IReadOnlyList<StackItem>
             return false;
         if (other is not Array a || Type != a.Type)
             return false;
-        return EqualsGraph(a, new Dictionary<StackItem, StackItem>(ReferenceEqualityComparer.Instance));
+        if (HasCircularReference() || a.HasCircularReference())
+            return EqualsGraph(a, new Dictionary<StackItem, StackItem>(ReferenceEqualityComparer.Instance));
+        if (Count != a.Count)
+            return false;
+        for (var i = 0; i < Count; i++)
+        {
+            var left = this[i];
+            var right = a[i];
+            if (left is null)
+            {
+                if (right is not null) return false;
+                continue;
+            }
+            if (left.Equals(right) == false)
+                return false;
+        }
+        return true;
     }
 
     /// <summary>
