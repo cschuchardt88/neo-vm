@@ -122,12 +122,15 @@ public class Struct : Array
                 {
                     if (ReferenceEquals(a, b)) continue;
                     if (b is not Struct sb) return false;
-                    if (seen.TryGetValue(sa, out var mapped))
+                    if (limits.Has(VmFeatures.IEquatableContent))
                     {
-                        if (!ReferenceEquals(mapped, sb)) return false;
-                        continue;
+                        if (seen.TryGetValue(sa, out var mapped))
+                        {
+                            if (!ReferenceEquals(mapped, sb)) return false;
+                            continue;
+                        }
+                        seen.Add(sa, sb);
                     }
-                    seen.Add(sa, sb);
                     if (sa.Count != sb.Count) return false;
                     foreach (var item in sa)
                         stack1.Push(item);

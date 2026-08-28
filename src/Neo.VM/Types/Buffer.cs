@@ -63,14 +63,23 @@ public class Buffer : StackItem
         if (ReferenceEquals(this, other)) return true;
         if (!ExecutionEngineLimits.Default.Has(VmFeatures.IEquatableContent))
             return false;
-        return other is Buffer b && GetSpan().SequenceEqual(b.GetSpan());
+        return EqualsContent(other);
     }
 
     /// <summary>
-    /// <see cref="OpCode.EQUAL"/> stays reference equality for buffers (neo#4042).
+    /// Without <see cref="VmFeatures.IEquatableContent"/> this is reference
+    /// equality (<see cref="OpCode.EQUAL"/>).
     /// </summary>
-    public override bool Equals(StackItem? other, ExecutionEngineLimits limits) =>
-        ReferenceEquals(this, other);
+    public override bool Equals(StackItem? other, ExecutionEngineLimits limits)
+    {
+        if (ReferenceEquals(this, other)) return true;
+        if (!limits.Has(VmFeatures.IEquatableContent))
+            return false;
+        return EqualsContent(other);
+    }
+
+    private bool EqualsContent(StackItem? other) =>
+        other is Buffer b && GetSpan().SequenceEqual(b.GetSpan());
 
     internal override void Cleanup()
     {

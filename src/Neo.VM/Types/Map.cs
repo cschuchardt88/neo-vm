@@ -96,6 +96,23 @@ public class Map : CompoundType, IReadOnlyDictionary<PrimitiveType, StackItem>
         if (ReferenceEquals(this, other)) return true;
         if (!ExecutionEngineLimits.Default.Has(VmFeatures.IEquatableContent))
             return false;
+        return EqualsContent(other);
+    }
+
+    /// <summary>
+    /// Without <see cref="VmFeatures.IEquatableContent"/> this is reference
+    /// equality (<see cref="OpCode.EQUAL"/>).
+    /// </summary>
+    public override bool Equals(StackItem? other, ExecutionEngineLimits limits)
+    {
+        if (ReferenceEquals(this, other)) return true;
+        if (!limits.Has(VmFeatures.IEquatableContent))
+            return false;
+        return EqualsContent(other);
+    }
+
+    private bool EqualsContent(StackItem? other)
+    {
         if (other is not Map m || Count != m.Count)
             return false;
         foreach (var (k, v) in dictionary)
@@ -107,17 +124,11 @@ public class Map : CompoundType, IReadOnlyDictionary<PrimitiveType, StackItem>
                 if (ov is not null) return false;
                 continue;
             }
-            if (!v.Equals(ov))
+            if (!v.Equals(ov, ExecutionEngineLimits.Default with { Features = VmFeatures.IEquatableContent }))
                 return false;
         }
         return true;
     }
-
-    /// <summary>
-    /// <see cref="OpCode.EQUAL"/> stays reference equality for maps (neo#4042).
-    /// </summary>
-    public override bool Equals(StackItem? other, ExecutionEngineLimits limits) =>
-        ReferenceEquals(this, other);
 
     public override void Clear()
     {

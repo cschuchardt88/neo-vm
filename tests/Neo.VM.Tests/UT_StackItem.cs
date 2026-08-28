@@ -19,6 +19,9 @@ namespace Neo.Test;
 [TestClass]
 public class UT_StackItem
 {
+    private static ExecutionEngineLimits ContentEquals =>
+        ExecutionEngineLimits.Default with { Features = VmFeatures.IEquatableContent };
+
     [TestMethod]
     public void TestCircularReference()
     {
@@ -30,8 +33,9 @@ public class UT_StackItem
         itemB[1] = itemB;
         itemC[1] = itemC;
 
-        Assert.IsTrue(itemA.Equals(itemB, ExecutionEngineLimits.Default));
-        Assert.IsFalse(itemA.Equals(itemC, ExecutionEngineLimits.Default));
+        Assert.ThrowsExactly<System.InvalidOperationException>(() => itemA.Equals(itemB, ExecutionEngineLimits.Default));
+        Assert.IsTrue(itemA.Equals(itemB, ContentEquals));
+        Assert.IsFalse(itemA.Equals(itemC, ContentEquals));
     }
 
     [TestMethod]
@@ -343,18 +347,24 @@ public class UT_StackItem
         Assert.AreEqual(expectedBoolean, actualBooleanOne);
         Assert.AreEqual(expectedInteger, actualIntegerOne);
         Assert.AreEqual(expectedByteString, actualByteStringOne);
-        Assert.AreEqual(expectedBuffer, actualBufferOne);
-        Assert.AreEqual(expectedMap, actualMapOne);
-        Assert.AreEqual(expectedStruct, actualStructOne);
-        Assert.AreEqual(expectedArray, actualArrayOne);
+
+        Assert.IsTrue(expectedBuffer.Equals(actualBufferOne, ContentEquals));
+        Assert.IsTrue(expectedMap.Equals(actualMapOne, ContentEquals));
+        Assert.IsTrue(expectedStruct.Equals(actualStructOne, ContentEquals));
+        Assert.IsTrue(expectedArray.Equals(actualArrayOne, ContentEquals));
+
+        Assert.IsFalse(expectedBuffer.Equals(actualBufferOne));
+        Assert.IsFalse(expectedMap.Equals(actualMapOne));
+        Assert.ThrowsExactly<System.NotSupportedException>(() => expectedStruct.Equals(actualStructOne));
+        Assert.IsFalse(expectedArray.Equals(actualArrayOne));
 
         Assert.AreNotEqual(expectedBoolean, actualBooleanTwo);
         Assert.AreNotEqual(expectedInteger, actualIntegerTwo);
         Assert.AreNotEqual(expectedByteString, actualByteStringTwo);
-        Assert.AreNotEqual(expectedBuffer, actualBufferTwo);
-        Assert.AreNotEqual(expectedMap, actualMapTwo);
-        Assert.AreNotEqual(expectedStruct, actualStructTwo);
-        Assert.AreNotEqual(expectedArray, actualArrayTwo);
+        Assert.IsFalse(expectedBuffer.Equals(actualBufferTwo, ContentEquals));
+        Assert.IsFalse(expectedMap.Equals(actualMapTwo, ContentEquals));
+        Assert.IsFalse(expectedStruct.Equals(actualStructTwo, ContentEquals));
+        Assert.IsFalse(expectedArray.Equals(actualArrayTwo, ContentEquals));
 
         Assert.IsFalse(expectedArray.Equals(actualArrayOne, ExecutionEngineLimits.Default));
         Assert.IsFalse(expectedBuffer.Equals(actualBufferOne, ExecutionEngineLimits.Default));
@@ -366,31 +376,33 @@ public class UT_StackItem
     {
         var same = new Array { 1 };
         Assert.IsTrue(same.Equals(same));
+        Assert.IsTrue(same.Equals(same, ContentEquals));
 
-        Assert.IsFalse(new Array { 1 }.Equals(new Struct { 1 }));
-        Assert.IsFalse(new Array { 1 }.Equals(new Array { 1, 2 }));
-        Assert.IsFalse(new Array { 1 }.Equals(new Array { 2 }));
-        Assert.IsFalse(new Array { null }.Equals(new Array { 1 }));
-        Assert.IsTrue(new Array { null }.Equals(new Array { null }));
+        Assert.IsFalse(new Array { 1 }.Equals(new Struct { 1 }, ContentEquals));
+        Assert.IsFalse(new Array { 1 }.Equals(new Array { 1, 2 }, ContentEquals));
+        Assert.IsFalse(new Array { 1 }.Equals(new Array { 2 }, ContentEquals));
+        Assert.IsFalse(new Array { null }.Equals(new Array { 1 }, ContentEquals));
+        Assert.IsTrue(new Array { null }.Equals(new Array { null }, ContentEquals));
 
-        Assert.IsFalse(new Map { [0] = 1 }.Equals(new Array { 1 }));
-        Assert.IsFalse(new Map { [0] = 1 }.Equals(new Map { [0] = 1, [1] = 2 }));
-        Assert.IsFalse(new Map { [0] = 1 }.Equals(new Map { [1] = 1 }));
-        Assert.IsFalse(new Map { [0] = 1 }.Equals(new Map { [0] = 2 }));
-        Assert.IsFalse(new Map { [0] = null }.Equals(new Map { [0] = 1 }));
-        Assert.IsTrue(new Map { [0] = null }.Equals(new Map { [0] = null }));
+        Assert.IsFalse(new Map { [0] = 1 }.Equals(new Array { 1 }, ContentEquals));
+        Assert.IsFalse(new Map { [0] = 1 }.Equals(new Map { [0] = 1, [1] = 2 }, ContentEquals));
+        Assert.IsFalse(new Map { [0] = 1 }.Equals(new Map { [1] = 1 }, ContentEquals));
+        Assert.IsFalse(new Map { [0] = 1 }.Equals(new Map { [0] = 2 }, ContentEquals));
+        Assert.IsFalse(new Map { [0] = null }.Equals(new Map { [0] = 1 }, ContentEquals));
+        Assert.IsTrue(new Map { [0] = null }.Equals(new Map { [0] = null }, ContentEquals));
 
         byte[] one = [1];
         byte[] two = [2];
-        Assert.IsFalse(new Buffer(one).Equals(new Array { 1 }));
-        Assert.IsFalse(new Buffer(one).Equals(new Buffer(two)));
-        Assert.IsTrue(new Buffer(one).Equals(new Buffer(one)));
+        Assert.IsFalse(new Buffer(one).Equals(new Array { 1 }, ContentEquals));
+        Assert.IsFalse(new Buffer(one).Equals(new Buffer(two), ContentEquals));
+        Assert.IsTrue(new Buffer(one).Equals(new Buffer(one), ContentEquals));
 
         var s = new Struct { 1 };
-        Assert.IsTrue(s.Equals(new Struct { 1 }));
-        Assert.IsFalse(s.Equals(new Struct { 2 }));
-        Assert.IsFalse(s.Equals(new Array { 1 }));
+        Assert.IsTrue(s.Equals(new Struct { 1 }, ContentEquals));
+        Assert.IsFalse(s.Equals(new Struct { 2 }, ContentEquals));
+        Assert.IsFalse(s.Equals(new Array { 1 }, ContentEquals));
         Assert.IsTrue(s.Equals(s, ExecutionEngineLimits.Default));
+        Assert.ThrowsExactly<System.NotSupportedException>(() => s.Equals(new Struct { 1 }));
     }
 
     [TestMethod]
@@ -423,14 +435,15 @@ public class UT_StackItem
         var b = new Array();
         b.Add(b);
         Assert.IsTrue(a.Equals(a));
-        Assert.IsTrue(a.Equals(b));
+        Assert.IsFalse(a.Equals(b));
+        Assert.IsTrue(a.Equals(b, ContentEquals));
         Assert.IsFalse(a.Equals(b, ExecutionEngineLimits.Default));
 
         var c = new Array { 1 };
         c.Add(c);
         var d = new Array { 2 };
         d.Add(d);
-        Assert.IsFalse(c.Equals(d));
+        Assert.IsFalse(c.Equals(d, ContentEquals));
 
         var leftOuter = new Array();
         var leftInner = new Array();
@@ -440,7 +453,7 @@ public class UT_StackItem
         var rightInner = new Array();
         rightOuter.Add(rightInner);
         rightInner.Add(rightOuter);
-        Assert.IsTrue(leftOuter.Equals(rightOuter));
+        Assert.IsTrue(leftOuter.Equals(rightOuter, ContentEquals));
     }
 
     [TestMethod]
@@ -450,15 +463,15 @@ public class UT_StackItem
         s1.Add(s1);
         var s2 = new Struct();
         s2.Add(s2);
-        Assert.IsTrue(s1.Equals(s2));
-        Assert.IsTrue(s1.Equals(s2, ExecutionEngineLimits.Default));
+        Assert.ThrowsExactly<System.NotSupportedException>(() => s1.Equals(s2));
+        Assert.IsTrue(s1.Equals(s2, ContentEquals));
 
         var t1 = new Struct { 1 };
         t1.Add(t1);
         var t2 = new Struct { 2 };
         t2.Add(t2);
-        Assert.IsFalse(t1.Equals(t2));
-        Assert.IsFalse(t1.Equals(t2, ExecutionEngineLimits.Default));
+        Assert.IsFalse(t1.Equals(t2, ContentEquals));
+        Assert.ThrowsExactly<System.InvalidOperationException>(() => t1.Equals(t2, ExecutionEngineLimits.Default));
     }
 
     [TestMethod]

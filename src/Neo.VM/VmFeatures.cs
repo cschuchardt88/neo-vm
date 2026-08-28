@@ -82,5 +82,5 @@ public static class VmFeatureSets
     /// <see cref="ExecutionEngineLimits"/> use this set.
     /// </summary>
     public const VmFeatures Current =
-        VmFeatures.SafeSubStr | VmFeatures.StrictContainerAccess | VmFeatures.BoundedShift | VmFeatures.IEquatableContent;
+        VmFeatures.SafeSubStr | VmFeatures.StrictContainerAccess | VmFeatures.BoundedShift;
 }

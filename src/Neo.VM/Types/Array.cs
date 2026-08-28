@@ -77,25 +77,7 @@ public class Array : CompoundType, IReadOnlyList<StackItem>
         if (ReferenceEquals(this, other)) return true;
         if (!ExecutionEngineLimits.Default.Has(VmFeatures.IEquatableContent))
             return false;
-        if (other is not Array a || Type != a.Type)
-            return false;
-        if (HasCircularReference() || a.HasCircularReference())
-            return EqualsGraph(a, new Dictionary<StackItem, StackItem>(ReferenceEqualityComparer.Instance));
-        if (Count != a.Count)
-            return false;
-        for (var i = 0; i < Count; i++)
-        {
-            var left = this[i];
-            var right = a[i];
-            if (left is null)
-            {
-                if (right is not null) return false;
-                continue;
-            }
-            if (left.Equals(right) == false)
-                return false;
-        }
-        return true;
+        return EqualsContent(other, ExecutionEngineLimits.Default with { Features = VmFeatures.IEquatableContent });
     }
 
     /// <summary>
@@ -128,17 +110,46 @@ public class Array : CompoundType, IReadOnlyList<StackItem>
                     return false;
                 continue;
             }
-            if (!left.Equals(right))
+            if (!left.Equals(right, ExecutionEngineLimits.Default with { Features = VmFeatures.IEquatableContent }))
                 return false;
         }
         return true;
     }
 
     /// <summary>
-    /// <see cref="OpCode.EQUAL"/> stays reference equality for arrays (neo#4042).
+    /// Without <see cref="VmFeatures.IEquatableContent"/> this is reference
+    /// equality (<see cref="OpCode.EQUAL"/>). With the feature, content compare.
     /// </summary>
-    public override bool Equals(StackItem? other, ExecutionEngineLimits limits) =>
-        ReferenceEquals(this, other);
+    public override bool Equals(StackItem? other, ExecutionEngineLimits limits)
+    {
+        if (ReferenceEquals(this, other)) return true;
+        if (!limits.Has(VmFeatures.IEquatableContent))
+            return false;
+        return EqualsContent(other, limits);
+    }
+
+    private bool EqualsContent(StackItem? other, ExecutionEngineLimits limits)
+    {
+        if (other is not Array a || Type != a.Type)
+            return false;
+        if (HasCircularReference() || a.HasCircularReference())
+            return EqualsGraph(a, new Dictionary<StackItem, StackItem>(ReferenceEqualityComparer.Instance));
+        if (Count != a.Count)
+            return false;
+        for (var i = 0; i < Count; i++)
+        {
+            var left = this[i];
+            var right = a[i];
+            if (left is null)
+            {
+                if (right is not null) return false;
+                continue;
+            }
+            if (left.Equals(right, limits) == false)
+                return false;
+        }
+        return true;
+    }
 
     public override void Clear()
     {
