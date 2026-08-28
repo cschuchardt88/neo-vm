@@ -18,7 +18,7 @@ namespace Neo.VM.Extensions;
 /// <summary>
 /// Source-generated logging helpers for virtual machine execution events.
 /// </summary>
-internal static partial class LoggerExtensions
+public static partial class LoggerExtensions
 {
     /// <summary>
     /// Logs a VM execute message.
