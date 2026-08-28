@@ -28,7 +28,7 @@ public class UT_JumpTable_Types
 
         protected override void PostExecuteInstruction(Instruction? instruction, RunStats runStats)
         {
-            AllStats.Add((instruction.OpCode, runStats));
+            AllStats.Add((instruction?.OpCode ?? OpCode.NOP, runStats));
             base.PostExecuteInstruction(instruction, runStats);
         }
     }
