@@ -88,10 +88,28 @@ public class UT_SafeSpan
     }
 
     [TestMethod]
-    public void GetSpan_OnArray_StillThrows()
+    public void GetSpan_UsesComputeSpan_ForPrimitives()
     {
-        var array = new Array { 1 };
+        StackItem number = 7;
+        CollectionAssert.AreEqual(number.AsSpan().ToArray(), number.GetSpan().ToArray());
+
+        byte[] data = [1, 2, 3];
+        var buffer = new Buffer(data);
+        CollectionAssert.AreEqual(data, buffer.GetSpan().ToArray());
+        CollectionAssert.AreEqual(buffer.AsSpan().ToArray(), buffer.GetSpan().ToArray());
+    }
+
+    [TestMethod]
+    public void GetSpan_OnCompound_StillThrows_AsSpanWorks()
+    {
+        var array = new Array { 1, 2 };
         Assert.ThrowsExactly<InvalidCastException>(() => array.GetSpan());
+        byte[] expected = [1, 2];
+        CollectionAssert.AreEqual(expected, array.AsSpan().ToArray());
+
+        var map = new Map { [1] = 2 };
+        Assert.ThrowsExactly<InvalidCastException>(() => map.GetSpan());
+        CollectionAssert.AreEqual(expected, map.AsSpan().ToArray());
     }
 
     [TestMethod]

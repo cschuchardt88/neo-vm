@@ -100,10 +100,7 @@ public class Buffer : StackItem
         return true;
     }
 
-    public override ReadOnlySpan<byte> GetSpan()
-    {
-        return InnerBuffer.Span;
-    }
+    public override ReadOnlySpan<byte> GetSpan() => ComputeSpan([]);
 
     protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
     {

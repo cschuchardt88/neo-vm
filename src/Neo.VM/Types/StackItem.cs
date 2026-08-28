@@ -186,16 +186,13 @@ public abstract partial class StackItem : IEquatable<StackItem>
 
     /// <summary>
     /// Get the readonly span used to read the VM object data.
+    /// Same as Rapid-Loop <c>AsSpan</c>: cycle-safe <see cref="ComputeSpan"/>.
     /// </summary>
-    /// <returns></returns>
-    public virtual ReadOnlySpan<byte> GetSpan()
-    {
-        throw new InvalidCastException();
-    }
+    public virtual ReadOnlySpan<byte> GetSpan() => AsSpan();
 
     /// <summary>
     /// Cycle-safe byte representation (Rapid-Loop neo-platform
-    /// <c>AsSpan</c> / <c>GetSafeSpan</c>). Opcode <see cref="GetSpan"/> is unchanged.
+    /// <c>AsSpan</c> / <c>GetSafeSpan</c>).
     /// </summary>
     public ReadOnlySpan<byte> AsSpan() => GetSafeSpan();
 
