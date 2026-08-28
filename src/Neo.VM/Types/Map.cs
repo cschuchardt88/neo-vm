@@ -175,7 +175,7 @@ public class Map : CompoundType, IReadOnlyDictionary<PrimitiveType, StackItem>
     }
 
     /// <summary>
-    /// Rapid-Loop <c>VMMap.ComputeSpan</c>: concatenate each key span then value span.
+    /// Concatenate each key span followed by its value span.
     /// </summary>
     protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
     {

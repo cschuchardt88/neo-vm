@@ -67,7 +67,7 @@ public class Pointer : StackItem
     }
 
     /// <summary>
-    /// Rapid-Loop <c>VMPointer.ComputeSpan</c>: the pointed-to script bytes.
+    /// The pointed-to script bytes.
     /// </summary>
     protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
         => ((ReadOnlyMemory<byte>)Script).Span;

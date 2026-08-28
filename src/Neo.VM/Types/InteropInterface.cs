@@ -64,8 +64,7 @@ public class InteropInterface : StackItem
     }
 
     /// <summary>
-    /// Rapid-Loop <c>VMInteropInterface.ComputeSpan</c>: blittable layout of the
-    /// wrapped object, or UTF-8 type name when that is not possible.
+    /// Blittable layout of the wrapped object, or UTF-8 type name when that is not possible.
     /// </summary>
     protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
     {

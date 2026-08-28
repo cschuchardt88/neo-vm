@@ -126,7 +126,7 @@ public class Array : CompoundType, IReadOnlyList<StackItem>
     }
 
     /// <summary>
-    /// Rapid-Loop <c>VMArray.ComputeSpan</c>: concatenate child spans, skip <see cref="Null"/>.
+    /// Concatenate child spans, skipping <see cref="Null"/>.
     /// </summary>
     protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
     {

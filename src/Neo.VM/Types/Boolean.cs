@@ -66,7 +66,7 @@ public class Boolean : PrimitiveType
     }
 
     /// <summary>
-    /// Rapid-Loop <c>VMBoolean.ComputeSpan</c>: <c>[1]</c> or <c>[0]</c>.
+    /// One byte: <c>1</c> if true, <c>0</c> if false.
     /// </summary>
     protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
         => value ? [1] : [0];
