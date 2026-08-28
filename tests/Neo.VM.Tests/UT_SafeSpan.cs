@@ -87,14 +87,16 @@ public class UT_SafeSpan
     }
 
     [TestMethod]
-    public void GetSpan_UsesComputeSpan_ForPrimitives()
+    public void GetSpan_UsesGetSafeSpan_ForPrimitives()
     {
         StackItem number = 7;
+        CollectionAssert.AreEqual(number.GetSafeSpan().ToArray(), number.GetSpan().ToArray());
         CollectionAssert.AreEqual(number.AsSpan().ToArray(), number.GetSpan().ToArray());
 
         byte[] data = [1, 2, 3];
         var buffer = new Buffer(data);
         CollectionAssert.AreEqual(data, buffer.GetSpan().ToArray());
+        CollectionAssert.AreEqual(buffer.GetSafeSpan().ToArray(), buffer.GetSpan().ToArray());
         CollectionAssert.AreEqual(buffer.AsSpan().ToArray(), buffer.GetSpan().ToArray());
     }
 

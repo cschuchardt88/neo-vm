@@ -100,7 +100,8 @@ public class Buffer : StackItem
         return true;
     }
 
-    public override ReadOnlySpan<byte> GetSpan() => ComputeSpan([]);
+    public override ReadOnlySpan<byte> GetSpan()
+        => GetSafeSpan();
 
     protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
     {
