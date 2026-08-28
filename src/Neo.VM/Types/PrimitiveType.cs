@@ -26,7 +26,7 @@ public abstract class PrimitiveType : StackItem
     /// <summary>
     /// The size of the VM object in bytes.
     /// </summary>
-    public virtual int Size => Memory.Length;
+    public override int Size => Memory.Length;
 
     public override StackItem ConvertTo(StackItemType type)
     {

@@ -32,7 +32,7 @@ public class Buffer : StackItem
     /// <summary>
     /// The size of the buffer.
     /// </summary>
-    public int Size => InnerBuffer.Length;
+    public override int Size => InnerBuffer.Length;
     public override StackItemType Type => StackItemType.Buffer;
 
     private readonly byte[] _buffer;

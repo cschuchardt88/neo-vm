@@ -19,6 +19,7 @@ namespace Neo.VM.Types;
 
 /// <summary>
 /// The base class for all types in the VM.
+/// Same role as Rapid-Loop neo-platform <c>VMObject</c>.
 /// </summary>
 public abstract partial class StackItem : IEquatable<StackItem>
 {
@@ -81,6 +82,11 @@ public abstract partial class StackItem : IEquatable<StackItem>
     /// The type of this VM object.
     /// </summary>
     public abstract StackItemType Type { get; }
+
+    /// <summary>
+    /// Byte length of <see cref="AsSpan"/>. Same as Rapid-Loop <c>VMObject.Size</c>.
+    /// </summary>
+    public virtual int Size => AsSpan().Length;
 
     /// <summary>
     /// Convert the VM object to the specified type.

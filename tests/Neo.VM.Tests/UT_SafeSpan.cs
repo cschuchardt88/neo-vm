@@ -112,6 +112,21 @@ public class UT_SafeSpan
     }
 
     [TestMethod]
+    public void Size_MatchesAsSpanLength()
+    {
+        StackItem number = 7;
+        Assert.AreEqual(number.AsSpan().Length, number.Size);
+
+        var array = new Array { 1, 2 };
+        Assert.AreEqual(array.AsSpan().Length, array.Size);
+
+        byte[] data = [1, 2, 3];
+        var buffer = new Buffer(data);
+        Assert.AreEqual(data.Length, buffer.Size);
+        Assert.AreEqual(buffer.AsSpan().Length, buffer.Size);
+    }
+
+    [TestMethod]
     public void AsSpan_MatchesGetSafeSpan()
     {
         StackItem item = 7;
