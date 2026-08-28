@@ -362,6 +362,38 @@ public class UT_StackItem
     }
 
     [TestMethod]
+    public void TestIEquatable_MismatchBranches()
+    {
+        var same = new Array { 1 };
+        Assert.IsTrue(same.Equals(same));
+
+        Assert.IsFalse(new Array { 1 }.Equals(new Struct { 1 }));
+        Assert.IsFalse(new Array { 1 }.Equals(new Array { 1, 2 }));
+        Assert.IsFalse(new Array { 1 }.Equals(new Array { 2 }));
+        Assert.IsFalse(new Array { null }.Equals(new Array { 1 }));
+        Assert.IsTrue(new Array { null }.Equals(new Array { null }));
+
+        Assert.IsFalse(new Map { [0] = 1 }.Equals(new Array { 1 }));
+        Assert.IsFalse(new Map { [0] = 1 }.Equals(new Map { [0] = 1, [1] = 2 }));
+        Assert.IsFalse(new Map { [0] = 1 }.Equals(new Map { [1] = 1 }));
+        Assert.IsFalse(new Map { [0] = 1 }.Equals(new Map { [0] = 2 }));
+        Assert.IsFalse(new Map { [0] = null }.Equals(new Map { [0] = 1 }));
+        Assert.IsTrue(new Map { [0] = null }.Equals(new Map { [0] = null }));
+
+        byte[] one = [1];
+        byte[] two = [2];
+        Assert.IsFalse(new Buffer(one).Equals(new Array { 1 }));
+        Assert.IsFalse(new Buffer(one).Equals(new Buffer(two)));
+        Assert.IsTrue(new Buffer(one).Equals(new Buffer(one)));
+
+        var s = new Struct { 1 };
+        Assert.IsTrue(s.Equals(new Struct { 1 }));
+        Assert.IsFalse(s.Equals(new Struct { 2 }));
+        Assert.IsFalse(s.Equals(new Array { 1 }));
+        Assert.IsTrue(s.Equals(s, ExecutionEngineLimits.Default));
+    }
+
+    [TestMethod]
     public void EqualOpcode_ArraysStayReferenceEquality()
     {
         using var engine = new ExecutionEngine();
