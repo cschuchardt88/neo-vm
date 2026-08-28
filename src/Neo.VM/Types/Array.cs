@@ -81,11 +81,29 @@ public class Array : CompoundType, IReadOnlyList<StackItem>
     }
 
     /// <summary>
-    /// Content equality with a clone-style cycle map (Rapid-Loop neo-platform
-    /// <c>objectMap</c> / <c>DetectCycle</c> visited set). If <c>this</c> was
-    /// already paired with <paramref name="other"/>, the cycle is consistent.
+    /// Without <see cref="VmFeatures.IEquatableContent"/> this is reference
+    /// equality (<see cref="OpCode.EQUAL"/>). With the feature, content compare.
     /// </summary>
-    internal bool EqualsGraph(Array other, Dictionary<StackItem, StackItem> seen)
+    public override bool Equals(StackItem? other, ExecutionEngineLimits limits)
+    {
+        if (ReferenceEquals(this, other)) return true;
+        if (!limits.Has(VmFeatures.IEquatableContent))
+            return false;
+        return EqualsContent(other, limits);
+    }
+
+    private bool EqualsContent(StackItem? other, ExecutionEngineLimits limits)
+    {
+        if (other is not Array a)
+            return false;
+        return EqualsContent(a, limits, new Dictionary<StackItem, StackItem>(ReferenceEqualityComparer.Instance));
+    }
+
+    /// <summary>
+    /// Item-by-item compare with a pair map so circular graphs do not recurse
+    /// (Rapid-Loop clone <c>objectMap</c>).
+    /// </summary>
+    internal bool EqualsContent(Array other, ExecutionEngineLimits limits, Dictionary<StackItem, StackItem> seen)
     {
         if (ReferenceEquals(this, other)) return true;
         if (seen.TryGetValue(this, out var mapped))
@@ -106,43 +124,8 @@ public class Array : CompoundType, IReadOnlyList<StackItem>
             {
                 if (right is not Array ra)
                     return false;
-                if (!la.EqualsGraph(ra, seen))
+                if (!la.EqualsContent(ra, limits, seen))
                     return false;
-                continue;
-            }
-            if (!left.Equals(right, ExecutionEngineLimits.Default with { Features = VmFeatures.IEquatableContent }))
-                return false;
-        }
-        return true;
-    }
-
-    /// <summary>
-    /// Without <see cref="VmFeatures.IEquatableContent"/> this is reference
-    /// equality (<see cref="OpCode.EQUAL"/>). With the feature, content compare.
-    /// </summary>
-    public override bool Equals(StackItem? other, ExecutionEngineLimits limits)
-    {
-        if (ReferenceEquals(this, other)) return true;
-        if (!limits.Has(VmFeatures.IEquatableContent))
-            return false;
-        return EqualsContent(other, limits);
-    }
-
-    private bool EqualsContent(StackItem? other, ExecutionEngineLimits limits)
-    {
-        if (other is not Array a || Type != a.Type)
-            return false;
-        if (HasCircularReference() || a.HasCircularReference())
-            return EqualsGraph(a, new Dictionary<StackItem, StackItem>(ReferenceEqualityComparer.Instance));
-        if (Count != a.Count)
-            return false;
-        for (var i = 0; i < Count; i++)
-        {
-            var left = this[i];
-            var right = a[i];
-            if (left is null)
-            {
-                if (right is not null) return false;
                 continue;
             }
             if (left.Equals(right, limits) == false)

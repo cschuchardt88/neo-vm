@@ -141,7 +141,7 @@ public class Struct : Array
                 {
                     if (b is not Array ba)
                         return false;
-                    if (!aa.EqualsGraph(ba, seen))
+                    if (!aa.EqualsContent(ba, limits, seen))
                         return false;
                 }
                 else
