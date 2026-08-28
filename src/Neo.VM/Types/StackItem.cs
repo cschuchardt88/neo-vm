@@ -84,9 +84,9 @@ public abstract partial class StackItem : IEquatable<StackItem>
     public abstract StackItemType Type { get; }
 
     /// <summary>
-    /// Byte length of <see cref="AsSpan"/>. Same as Rapid-Loop <c>VMObject.Size</c>.
+    /// Byte length of parameterless GetSpan. Same as Rapid-Loop <c>VMObject.Size</c>.
     /// </summary>
-    public virtual int Size => AsSpan().Length;
+    public virtual int Size => GetSpan().Length;
 
     /// <summary>
     /// Convert the VM object to the specified type using default engine limits
@@ -230,15 +230,10 @@ public abstract partial class StackItem : IEquatable<StackItem>
     }
 
     /// <summary>
-    /// Rapid-Loop AsSpan: same as parameterless GetSpan.
-    /// </summary>
-    public ReadOnlySpan<byte> AsSpan() => GetSpan();
-
-    /// <summary>
     /// Cycle-safe byte representation. Compounds always succeed here;
-    /// <see cref="AsSpan"/> and parameterless GetSpan follow opcode limits.
+    /// parameterless GetSpan follows opcode limits.
     /// </summary>
-    public ReadOnlySpan<byte> GetSafeSpan()
+    internal ReadOnlySpan<byte> GetSafeSpan()
     {
         var visited = new HashSet<StackItem>(ReferenceEqualityComparer.Instance);
         return GetSafeSpan(visited);
@@ -387,7 +382,7 @@ public abstract partial class StackItem : IEquatable<StackItem>
     public static explicit operator bool(StackItem value) => value.GetBoolean();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static explicit operator byte[](StackItem value) => [.. value.AsSpan()];
+    public static explicit operator byte[](StackItem value) => [.. value.GetSpan()];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator string(StackItem value) => value.ToString() ?? string.Empty;

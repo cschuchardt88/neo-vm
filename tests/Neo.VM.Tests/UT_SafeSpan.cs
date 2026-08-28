@@ -92,7 +92,6 @@ public class UT_SafeSpan
     {
         StackItem number = 7;
         CollectionAssert.AreEqual(number.GetSafeSpan().ToArray(), number.GetSpan().ToArray());
-        CollectionAssert.AreEqual(number.AsSpan().ToArray(), number.GetSpan().ToArray());
         CollectionAssert.AreEqual(
             number.GetSpan(ExecutionEngineLimits.Default).ToArray(),
             number.GetSpan().ToArray());
@@ -101,7 +100,6 @@ public class UT_SafeSpan
         var buffer = new Buffer(data);
         CollectionAssert.AreEqual(data, buffer.GetSpan().ToArray());
         CollectionAssert.AreEqual(buffer.GetSafeSpan().ToArray(), buffer.GetSpan().ToArray());
-        CollectionAssert.AreEqual(buffer.AsSpan().ToArray(), buffer.GetSpan().ToArray());
         CollectionAssert.AreEqual(
             buffer.GetSpan(ExecutionEngineLimits.Default).ToArray(),
             buffer.GetSpan().ToArray());
@@ -117,7 +115,6 @@ public class UT_SafeSpan
 
         byte[] expected = [1, 2];
         CollectionAssert.AreEqual(expected, array.GetSafeSpan().ToArray());
-        Assert.ThrowsExactly<InvalidCastException>(() => array.AsSpan());
 
         var enabled = ExecutionEngineLimits.Default with { Features = VmFeatureSets.Current | VmFeatures.CompoundSpan };
         CollectionAssert.AreEqual(expected, array.GetSpan(enabled).ToArray());
@@ -142,7 +139,7 @@ public class UT_SafeSpan
     public void Size_MatchesAsSpanLength()
     {
         StackItem number = 7;
-        Assert.AreEqual(number.AsSpan().Length, number.Size);
+        Assert.AreEqual(number.GetSpan().Length, number.Size);
 
         var array = new Array { 1, 2 };
         Assert.ThrowsExactly<InvalidCastException>(() => _ = array.Size);
@@ -150,18 +147,17 @@ public class UT_SafeSpan
         byte[] data = [1, 2, 3];
         var buffer = new Buffer(data);
         Assert.AreEqual(data.Length, buffer.Size);
-        Assert.AreEqual(buffer.AsSpan().Length, buffer.Size);
+        Assert.AreEqual(buffer.GetSpan().Length, buffer.Size);
     }
 
     [TestMethod]
-    public void AsSpan_MatchesGetSpan()
+    public void GetSafeSpan_MatchesGetSpan_ForPrimitives()
     {
         StackItem item = 7;
-        CollectionAssert.AreEqual(item.GetSpan().ToArray(), item.AsSpan().ToArray());
-        CollectionAssert.AreEqual(item.GetSafeSpan().ToArray(), item.AsSpan().ToArray());
+        CollectionAssert.AreEqual(item.GetSpan().ToArray(), item.GetSafeSpan().ToArray());
 
         var array = new Array { 1, 2 };
-        Assert.ThrowsExactly<InvalidCastException>(() => array.AsSpan());
+        Assert.ThrowsExactly<InvalidCastException>(() => array.GetSpan());
         CollectionAssert.AreEqual(array.GetSafeSpan().ToArray(), new byte[] { 1, 2 });
     }
 
@@ -266,7 +262,6 @@ public class UT_SafeSpan
         var array = new Array(items);
         var expected = ConcatSkippingNull(items);
         CollectionAssert.AreEqual(expected, array.GetSafeSpan().ToArray());
-        Assert.ThrowsExactly<InvalidCastException>(() => array.AsSpan());
         CollectionAssert.AreEqual(expected, array.GetSpan(CompoundSpanLimits).ToArray());
         Assert.ThrowsExactly<InvalidCastException>(() => array.GetSpan());
     }
@@ -278,7 +273,6 @@ public class UT_SafeSpan
         var s = new Struct(items);
         var expected = ConcatSkippingNull(items);
         CollectionAssert.AreEqual(expected, s.GetSafeSpan().ToArray());
-        Assert.ThrowsExactly<InvalidCastException>(() => s.AsSpan());
         CollectionAssert.AreEqual(expected, s.GetSpan(CompoundSpanLimits).ToArray());
         Assert.ThrowsExactly<InvalidCastException>(() => s.GetSpan());
     }
@@ -293,7 +287,6 @@ public class UT_SafeSpan
 
         var expected = ConcatMap(map);
         CollectionAssert.AreEqual(expected, map.GetSafeSpan().ToArray());
-        Assert.ThrowsExactly<InvalidCastException>(() => map.AsSpan());
         CollectionAssert.AreEqual(expected, map.GetSpan(CompoundSpanLimits).ToArray());
         Assert.ThrowsExactly<InvalidCastException>(() => map.GetSpan());
     }
