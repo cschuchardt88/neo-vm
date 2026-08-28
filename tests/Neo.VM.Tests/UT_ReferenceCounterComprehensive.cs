@@ -460,8 +460,7 @@ public class UT_ReferenceCounterComprehensive
         engine.LoadScript(sb.ToArray());
 
         Assert.AreEqual(VMState.HALT, engine.Execute());
-        // Null is not tracked (not CompoundType or Buffer), so count is 0
-        // This verifies that non-tracked types don't affect the reference count
+        // INITSLOT counts the Null placeholders; RET unloads the slot and drops them.
         Assert.AreEqual(0, engine.ReferenceCounter.Count);
     }
 
