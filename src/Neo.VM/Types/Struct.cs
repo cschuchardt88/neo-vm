@@ -96,6 +96,7 @@ public class Struct : Array
     public override bool Equals(StackItem? other, ExecutionEngineLimits limits)
     {
         if (other is not Struct s) return false;
+        var seen = new Dictionary<StackItem, StackItem>(ReferenceEqualityComparer.Instance);
         Stack<StackItem> stack1 = new();
         Stack<StackItem> stack2 = new();
         stack1.Push(this);
@@ -106,8 +107,8 @@ public class Struct : Array
         {
             if (count-- == 0)
                 throw new InvalidOperationException("Too many struct items to compare in struct comparison.");
-            StackItem a = stack1.Pop();
-            StackItem b = stack2.Pop();
+            var a = stack1.Pop();
+            var b = stack2.Pop();
             if (a is ByteString byteString)
             {
                 if (!byteString.Equals(b, ref maxComparableSize)) return false;
@@ -121,11 +122,24 @@ public class Struct : Array
                 {
                     if (ReferenceEquals(a, b)) continue;
                     if (b is not Struct sb) return false;
+                    if (seen.TryGetValue(sa, out var mapped))
+                    {
+                        if (!ReferenceEquals(mapped, sb)) return false;
+                        continue;
+                    }
+                    seen.Add(sa, sb);
                     if (sa.Count != sb.Count) return false;
-                    foreach (StackItem item in sa)
+                    foreach (var item in sa)
                         stack1.Push(item);
-                    foreach (StackItem item in sb)
+                    foreach (var item in sb)
                         stack2.Push(item);
+                }
+                else if (a is Array aa)
+                {
+                    if (b is not Array ba)
+                        return false;
+                    if (!aa.EqualsGraph(ba, seen))
+                        return false;
                 }
                 else
                 {

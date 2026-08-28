@@ -30,8 +30,8 @@ public class UT_StackItem
         itemB[1] = itemB;
         itemC[1] = itemC;
 
-        Assert.ThrowsExactly<System.InvalidOperationException>(() => itemA.Equals(itemB, ExecutionEngineLimits.Default));
-        Assert.ThrowsExactly<System.InvalidOperationException>(() => itemA.Equals(itemC, ExecutionEngineLimits.Default));
+        Assert.IsTrue(itemA.Equals(itemB, ExecutionEngineLimits.Default));
+        Assert.IsFalse(itemA.Equals(itemC, ExecutionEngineLimits.Default));
     }
 
     [TestMethod]
@@ -391,6 +391,52 @@ public class UT_StackItem
         Assert.IsFalse(s.Equals(new Struct { 2 }));
         Assert.IsFalse(s.Equals(new Array { 1 }));
         Assert.IsTrue(s.Equals(s, ExecutionEngineLimits.Default));
+    }
+
+    [TestMethod]
+    public void TestIEquatable_CircularArray()
+    {
+        var a = new Array();
+        a.Add(a);
+        var b = new Array();
+        b.Add(b);
+        Assert.IsTrue(a.Equals(a));
+        Assert.IsTrue(a.Equals(b));
+        Assert.IsFalse(a.Equals(b, ExecutionEngineLimits.Default));
+
+        var c = new Array { 1 };
+        c.Add(c);
+        var d = new Array { 2 };
+        d.Add(d);
+        Assert.IsFalse(c.Equals(d));
+
+        var leftOuter = new Array();
+        var leftInner = new Array();
+        leftOuter.Add(leftInner);
+        leftInner.Add(leftOuter);
+        var rightOuter = new Array();
+        var rightInner = new Array();
+        rightOuter.Add(rightInner);
+        rightInner.Add(rightOuter);
+        Assert.IsTrue(leftOuter.Equals(rightOuter));
+    }
+
+    [TestMethod]
+    public void TestIEquatable_CircularStruct()
+    {
+        var s1 = new Struct();
+        s1.Add(s1);
+        var s2 = new Struct();
+        s2.Add(s2);
+        Assert.IsTrue(s1.Equals(s2));
+        Assert.IsTrue(s1.Equals(s2, ExecutionEngineLimits.Default));
+
+        var t1 = new Struct { 1 };
+        t1.Add(t1);
+        var t2 = new Struct { 2 };
+        t2.Add(t2);
+        Assert.IsFalse(t1.Equals(t2));
+        Assert.IsFalse(t1.Equals(t2, ExecutionEngineLimits.Default));
     }
 
     [TestMethod]

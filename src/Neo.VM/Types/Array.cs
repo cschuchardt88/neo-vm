@@ -77,15 +77,39 @@ public class Array : CompoundType, IReadOnlyList<StackItem>
         if (ReferenceEquals(this, other)) return true;
         if (!ExecutionEngineLimits.Default.Has(VmFeatures.IEquatableContent))
             return false;
-        if (other is not Array a || Type != a.Type || Count != a.Count)
+        if (other is not Array a || Type != a.Type)
             return false;
+        return EqualsGraph(a, new Dictionary<StackItem, StackItem>(ReferenceEqualityComparer.Instance));
+    }
+
+    /// <summary>
+    /// Content equality with a clone-style cycle map (Rapid-Loop neo-platform
+    /// <c>objectMap</c> / <c>DetectCycle</c> visited set). If <c>this</c> was
+    /// already paired with <paramref name="other"/>, the cycle is consistent.
+    /// </summary>
+    internal bool EqualsGraph(Array other, Dictionary<StackItem, StackItem> seen)
+    {
+        if (ReferenceEquals(this, other)) return true;
+        if (seen.TryGetValue(this, out var mapped))
+            return ReferenceEquals(mapped, other);
+        if (Type != other.Type || Count != other.Count)
+            return false;
+        seen.Add(this, other);
         for (var i = 0; i < Count; i++)
         {
             var left = this[i];
-            var right = a[i];
+            var right = other[i];
             if (left is null)
             {
                 if (right is not null) return false;
+                continue;
+            }
+            if (left is Array la)
+            {
+                if (right is not Array ra)
+                    return false;
+                if (!la.EqualsGraph(ra, seen))
+                    return false;
                 continue;
             }
             if (!left.Equals(right))
