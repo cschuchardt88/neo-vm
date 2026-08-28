@@ -68,7 +68,7 @@ public enum VmFeatures : ulong
     /// throws, so CAT/SUBSTR of Map/Array/Struct FAULT (current JSON tests).
     /// On: compounds concatenate child spans, capped at
     /// <see cref="ExecutionEngineLimits.MaxItemSize"/>.
-    /// Host <c>AsSpan</c>/<c>GetSafeSpan</c> always work.
+    /// Host <c>GetSafeSpan</c> (internal) always works for compounds.
     /// </remarks>
     CompoundSpan = 1 << 3,
 

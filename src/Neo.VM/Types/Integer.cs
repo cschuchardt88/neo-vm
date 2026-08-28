@@ -135,31 +135,9 @@ public class Integer : PrimitiveType
         return new Integer(value);
     }
 
-    /// <summary>
-    /// Interprets at most <see cref="MaxSize"/> bytes as an unsigned little-endian integer.
-    /// </summary>
-    public static BigInteger ToUnsignedBigInteger(ReadOnlySpan<byte> span)
-    {
-        if (span.Length > MaxSize)
-            throw new InvalidCastException($"Integer size {span.Length} bytes exceeds maximum allowed size of {MaxSize} bytes.");
-        return new BigInteger(span, isUnsigned: true);
-    }
-
-    /// <summary>
-    /// Requires a non-negative value that fits in <see cref="MaxSize"/> unsigned bytes.
-    /// </summary>
-    public static BigInteger ToUnsignedBigInteger(BigInteger value)
-    {
-        if (value.Sign < 0)
-            throw new InvalidCastException("Explicit BigInteger conversion requires an unsigned value.");
-        if (!value.IsZero && value.GetByteCount(isUnsigned: true) > MaxSize)
-            throw new InvalidCastException($"Integer size exceeds maximum allowed size of {MaxSize} bytes.");
-        return value;
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator BigInteger(Integer value)
-        => ToUnsignedBigInteger(value.GetInteger());
+        => value.GetInteger();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator byte(Integer value) => (byte)value.GetInteger();

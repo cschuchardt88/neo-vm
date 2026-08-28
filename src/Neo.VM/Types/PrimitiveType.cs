@@ -47,9 +47,6 @@ public abstract class PrimitiveType : StackItem
 
     public abstract override bool Equals(StackItem? other);
 
-    public sealed override ReadOnlySpan<byte> GetSpan()
-        => GetSafeSpan();
-
     protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
     {
         return Memory.Span;

@@ -101,9 +101,6 @@ public class Buffer : StackItem
         return true;
     }
 
-    public override ReadOnlySpan<byte> GetSpan()
-        => GetSafeSpan();
-
     protected override ReadOnlySpan<byte> ComputeSpan(HashSet<StackItem> visited)
     {
         return InnerBuffer.Span;
@@ -136,5 +133,5 @@ public class Buffer : StackItem
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator BigInteger(Buffer value)
-        => Integer.ToUnsignedBigInteger(value.GetSpan());
+        => new(value.GetSpan());
 }
