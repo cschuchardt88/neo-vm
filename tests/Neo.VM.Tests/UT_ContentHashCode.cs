@@ -123,7 +123,7 @@ public class UT_ContentHashCode
 
         Assert.AreEqual(itemB.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
         Assert.AreNotEqual(itemC.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
-        Assert.AreEqual(itemA.AsSpan().ToHashCode(0 ^ 397), itemA.GetHashCode(ContentHash));
+        Assert.AreEqual(itemA.GetSafeSpan().ToHashCode(0 ^ 397), itemA.GetHashCode(ContentHash));
     }
 
     [TestMethod]
@@ -146,7 +146,7 @@ public class UT_ContentHashCode
 
         Assert.AreEqual(itemB.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
         Assert.AreNotEqual(itemC.GetHashCode(ContentHash), itemA.GetHashCode(ContentHash));
-        Assert.AreEqual(itemA.AsSpan().ToHashCode(0), itemA.GetHashCode(ContentHash));
+        Assert.AreEqual(itemA.GetSafeSpan().ToHashCode(0), itemA.GetHashCode(ContentHash));
     }
 
     [TestMethod]

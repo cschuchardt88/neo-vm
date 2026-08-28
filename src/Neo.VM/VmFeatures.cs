@@ -74,7 +74,7 @@ public enum VmFeatures : ulong
 
     /// <summary>
     /// Host <see cref="object.GetHashCode"/> uses Rapid-Loop content hashing
-    /// (<c>ToHashCode</c> over <see cref="Types.StackItem.AsSpan"/>).
+    /// (<c>ToHashCode</c> over <see cref="Types.StackItem.GetSpan(ExecutionEngineLimits)"/>).
     /// </summary>
     /// <remarks>
     /// Not a protocol hardfork. Off: ByteString uses XxHash3+Type; Array/Map/Struct
